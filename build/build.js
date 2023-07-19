@@ -6,6 +6,7 @@ import {
   cpSync,
   statSync,
   writeFileSync,
+  existsSync
 } from "fs";
 import { readJSONFile, CONFIG_FILE } from "./config_helper.js";
 
