@@ -7,9 +7,19 @@ import {
   statSync,
   writeFileSync,
 } from "fs";
-import { readJSONFile } from "./config_helper.js";
+import { readJSONFile, CONFIG_FILE } from "./config_helper.js";
 
 export const build = (paths, targetFolder, extraConverters) => {
+  if (targetFolder === undefined && existsSync(CONFIG_FILE)) {
+      // We may want to move this higher in case we get more relevant parameters in the config file
+      targetFolder = readJSONFile(CONFIG_FILE).buildPath;
+  }
+  
+  // Default value in case no folder was given and no preference was found in the config file
+  if (targetFolder === undefined) {
+      targetFolder = "./build";
+  }
+
   // Check if folder exists and eventually create it
   try {
     accessSync(targetFolder);
