@@ -1,7 +1,6 @@
 import { mkdirSync, accessSync, readdirSync, rmSync, cpSync, statSync, writeFileSync, existsSync } from "fs";
 import { readJSONFile, CONFIG_FILE } from "./config_helper.js";
 
-
 export const build = (paths, targetFolder, extraConverters) => {
     if (targetFolder === undefined && existsSync(CONFIG_FILE)) {
         // We may want to move this higher in case we get more relevant parameters in the config file
