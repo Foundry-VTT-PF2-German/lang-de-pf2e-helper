@@ -4,7 +4,8 @@ name: Submodule Updates
 # Job started manually      #
 #############################
 on:
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 ###############
 # Set the Job #
