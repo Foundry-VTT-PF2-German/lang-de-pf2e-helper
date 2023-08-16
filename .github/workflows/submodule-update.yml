@@ -1,8 +1,8 @@
 name: Submodule Updates
 
-#############################
-# Job started manually      #
-#############################
+##############################################
+# Start Job on merged pull request into main #
+##############################################
 on:
   pull_request:
     branches: [main]
@@ -12,6 +12,7 @@ on:
 ###############
 jobs:
   build:
+    if: "github.event.pull_request.merged == true"
     name: Submodule update
     runs-on: ubuntu-latest
     env:
