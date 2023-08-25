@@ -4,19 +4,17 @@ import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
 export async function getContentFromZip(file) {
     const zipReader = new ZipReader(new BlobReader(file));
     const zipContent = await zipReader.getEntries();
-    const filteredZipContent = [];
-    zipContent.forEach((entry) => {
-        if (!entry.filename.endsWith("/")) filteredZipContent.push(entry);
-    });
+    const zipFiles = zipContent.filter((entry) => !entry.filename.endsWith("/"));
     const fileContentPromises = [];
-    filteredZipContent.forEach((entry) => {
+    zipFiles.forEach((entry) => {
         fileContentPromises.push(entry.getData(new BlobWriter()).then((blobRes) => blobRes.text()));
     });
     const fileContents = await Promise.all(fileContentPromises);
     let i = 0;
-    const results = filteredZipContent.map((entry) => {
+    const results = zipFiles.map((entry) => {
+        const parsedPath = parsePath(entry.filename);
         const mappedEntry = {
-            ...getSplittedFileName(entry.filename),
+            ...parsedPath,
             ["content"]: fileContents[i],
         };
         i = i + 1;
@@ -30,26 +28,15 @@ export async function getFileFromURL(url) {
     return fetch(url).then((res) => res.blob());
 }
 
-// Separate file path and file name from a given string
-export function getSplittedFileName(filePath) {
-    const filename = filePath.split("\\").pop().split("/").pop();
-    const filenameSplit = {
-        filename: filename,
-        path: filePath.replace(filename, ""),
-    };
-    return filenameSplit;
+// Get path, file name and file extension from file path
+export function parsePath(filePath) {
+    const parts = filePath.split(/\/|\\/g);
+    const [fileName, fileType] = parts.pop().split(".");
+    const path = parts.join("/") + "/";
+    return { path: path, fileName: fileName, fileType: fileType };
 }
 
-// Fetches zip file from URL and returns array containing filename, file path, and file content as text
+// Fetch zip file from URL and return array containing filename, file path, and file content
 export async function getZipContentFromURL(url) {
     return getContentFromZip(await getFileFromURL(url));
 }
-
-const packs = await getZipContentFromURL("https://github.com/foundryvtt/pf2e/releases/latest/download/json-assets.zip");
-const test = packs[10];
-console.warn(JSON.parse(test.content));
-/*test.forEach((entry) => {
-    if (entry.name === "Zridi") {
-        console.warn(entry.system.abilities.cha);
-    }
-});*/
