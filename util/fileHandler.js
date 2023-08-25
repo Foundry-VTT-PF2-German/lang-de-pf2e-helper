@@ -1,24 +1,8 @@
 import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
 
-// Get file from URL as blob
-export async function getBlobFromURL(url) {
-    return fetch(url).then((res) => res.blob());
-}
-
-// Separate file path and file name from a given string
-export function getSplittedFileName(filePath) {
-    const filename = filePath.split("\\").pop().split("/").pop();
-    const filenameSplit = {
-        filename: filename,
-        path: filePath.replace(filename, ""),
-    };
-    return filenameSplit;
-}
-
-// Get zip file from URL, return array of objects containing filename, file path, and file content
-export async function getAndUnzipFromURL(url, json = false) {
-    const zipFileBlob = await getBlobFromURL(url);
-    const zipReader = new ZipReader(new BlobReader(zipFileBlob));
+// Read zip file, return array of objects containing filename, file path, and file content
+export async function getContentFromZip(file) {
+    const zipReader = new ZipReader(new BlobReader(file));
     const zipContent = await zipReader.getEntries();
     const filteredZipContent = [];
     zipContent.forEach((entry) => {
@@ -33,7 +17,7 @@ export async function getAndUnzipFromURL(url, json = false) {
     const results = filteredZipContent.map((entry) => {
         const mappedEntry = {
             ...getSplittedFileName(entry.filename),
-            ["content"]: json ? JSON.parse(fileContents[i]) : fileContents[i],
+            ["content"]: fileContents[i],
         };
         i = i + 1;
         return mappedEntry;
@@ -41,13 +25,30 @@ export async function getAndUnzipFromURL(url, json = false) {
     return results;
 }
 
-/*const packs = await getAndUnzipFromURL(
-    "https://github.com/foundryvtt/pf2e/releases/latest/download/json-assets.zip",
-    true
-);
+// Get file from URL as blob
+export async function getFileFromURL(url) {
+    return fetch(url).then((res) => res.blob());
+}
+
+// Separate file path and file name from a given string
+export function getSplittedFileName(filePath) {
+    const filename = filePath.split("\\").pop().split("/").pop();
+    const filenameSplit = {
+        filename: filename,
+        path: filePath.replace(filename, ""),
+    };
+    return filenameSplit;
+}
+
+// Fetches zip file from URL and returns array containing filename, file path, and file content as text
+export async function getZipContentFromURL(url) {
+    return getContentFromZip(await getFileFromURL(url));
+}
+
+const packs = await getZipContentFromURL("https://github.com/foundryvtt/pf2e/releases/latest/download/json-assets.zip");
 const test = packs[10];
-console.warn(test);
-test.forEach((entry) => {
+console.warn(JSON.parse(test.content));
+/*test.forEach((entry) => {
     if (entry.name === "Zridi") {
         console.warn(entry.system.abilities.cha);
     }
