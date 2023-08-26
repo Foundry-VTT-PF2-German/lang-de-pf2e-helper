@@ -3,7 +3,7 @@
  * @param {Array<any>} sourceArray
  * @returns {Object}
  */
-function convertArray(sourceArray) {
+export function convertArray(sourceArray) {
     if (Array.isArray(sourceArray)) {
         return Object.assign({}, sourceArray);
     }
@@ -15,7 +15,7 @@ function convertArray(sourceArray) {
  * @param {Object} sourceObject
  * @returns {Object}
  */
-function sortObject(sourceObject) {
+export function sortObject(sourceObject) {
     return Object.keys(sourceObject)
         .sort()
         .reduce((obj, key) => {
