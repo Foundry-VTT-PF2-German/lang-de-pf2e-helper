@@ -1,6 +1,10 @@
 import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
 
-// Read zip file, return array of objects containing filename, file path, and file content
+/**
+ * Read zip file, return array of objects containing filename, file path, and file content
+ * @param {Blob} file
+ * @returns {Promise}
+ */
 export async function getContentFromZip(file) {
     const zipReader = new ZipReader(new BlobReader(file));
     const zipContent = await zipReader.getEntries();
@@ -23,12 +27,20 @@ export async function getContentFromZip(file) {
     return results;
 }
 
-// Get file from URL as blob
+/**
+ * Get file from URL as blob
+ * @param {URL} url
+ * @returns {Promise}
+ */
 export async function getFileFromURL(url) {
     return fetch(url).then((res) => res.blob());
 }
 
-// Get path, file name and file extension from file path
+/**
+ * Get path, file name and file extension from file path
+ * @param {string} filePath
+ * @returns {Object}
+ */
 export function parsePath(filePath) {
     const parts = filePath.split(/\/|\\/g);
     const [fileName, fileType] = parts.pop().split(".");
@@ -36,7 +48,11 @@ export function parsePath(filePath) {
     return { path: path, fileName: fileName, fileType: fileType };
 }
 
-// Fetch zip file from URL and return array containing filename, file path, and file content
+/**
+ * Fetch zip file from URL and return array containing filename, file path, and file content
+ * @param {URL} url
+ * @returns {Promise}
+ */
 export async function getZipContentFromURL(url) {
     return getContentFromZip(await getFileFromURL(url));
 }
