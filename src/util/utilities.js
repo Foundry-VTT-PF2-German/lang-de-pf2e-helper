@@ -25,7 +25,7 @@ export function sortObject(obj) {
     Object.keys(obj)
         .sort()
         .forEach((key) => {
-            sortedObject[key] = recursivelySortObject(obj[key]);
+            sortedObject[key] = sortObject(obj[key]);
         });
 
     return sortedObject;
