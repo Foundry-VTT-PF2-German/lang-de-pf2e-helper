@@ -3,8 +3,9 @@
  * @param {string} packName
  * @param {Object} packData
  * @param {Object} packConfig
+ * @param {Object} dictionary
  */
-export function extractPack(packName, packData, packConfig) {
+export function extractPack(packName, packData, packConfig, dictionary) {
     // Create basic json structure
     const extractedPack = {
         label: packName,
@@ -32,7 +33,7 @@ export function extractPack(packName, packData, packConfig) {
         }
 
         // Extract entries based on mapping in config file
-        const extractedEntry = extractEntry(CONFIG.mappings[packConfig.mapping], packDataEntry);
+        const extractedEntry = extractEntry(CONFIG.mappings[packConfig.mapping], packDataEntry, dictionary);
         if (extractedEntry[0] !== undefined) {
             Object.assign(entries, extractedEntry[0]);
         }
@@ -48,7 +49,7 @@ export function extractPack(packName, packData, packConfig) {
             extractedPack.entries[mappingKey] = entries[mappingKey];
         });
 
-    // Mapping sortieren
+    // Sort mapping
     extractedPack.mapping = sortObject(extractedPack.mapping);
 
     // Save file to directory
@@ -61,13 +62,15 @@ export function extractPack(packName, packData, packConfig) {
  * Extract pack data from a list of pack groups and write extration files
  * @param {Object} packGroupList
  * @param {Array<Object>} packs
+ * @param {Object} dictionary
  */
-export function extractPackGroupList(packGroupList, packs) {
+export function extractPackGroupList(packGroupList, packs, dictionary) {
     for (const [packGroup, packConfig] of Object.entries(packGroupList)) {
         extractPackGroup(
             packGroup,
             packConfig,
-            packs.filter((pack) => packConfig.packNames.includes(pack.fileName))
+            packs.filter((pack) => packConfig.packNames.includes(pack.fileName)),
+            dictionary
         );
     }
 }
@@ -77,20 +80,21 @@ export function extractPackGroupList(packGroupList, packs) {
  * @param {string} packGroup
  * @param {Object} packConfig
  * @param {Array<Object>} packs
+ * @param {Object} dictionary
  */
-export function extractPackGroup(packGroup, packConfig, packs) {
+export function extractPackGroup(packGroup, packConfig, packs, dictionary) {
     // Loop through packs and extract data defined in mappings
     console.log(`\n--------------------------\nExtracting: ${packGroup}\n--------------------------`);
     packs.forEach((pack) => {
-        extractPack(pack.fileName, JSON.parse(pack.content), packConfig);
+        extractPack(pack.fileName, JSON.parse(pack.content), packConfig, dictionary);
     });
 }
 
 /**
  * Add mappingData to existing mapping object without duplicates
- * @param {Object} mapping 
- * @param {Object} mappingData 
- * @param {boolean} converter 
+ * @param {Object} mapping
+ * @param {Object} mappingData
+ * @param {boolean} converter
  */
 function addMapping(mapping, mappingData, converter = false) {
     Object.keys(mappingData).forEach((mappingKey) => {
@@ -110,37 +114,37 @@ function addMapping(mapping, mappingData, converter = false) {
 }
 
 /**
- * Extends current dictionary with new extracted data without duplicates
- * @param {string} mappingKey 
- * @param {Array<string>} extractedData 
+ * Extends dictionary with new extracted data without duplicates
+ * @param {Object} dictionary
+ * @param {string} mappingKey
+ * @param {Array<string>} extractedData
  */
-function extendDictionary(mappingKey, extractedData) {
-    if (Array.isArray(extractedData)) {
-        extractedData.forEach((arrayValue) => {
-            addToDictionary(mappingKey, arrayValue);
-        });
-    } else {
-        const convertedValue = String(extractedData).toLowerCase();
-        if (!resolvePath(dictionaryData, [mappingKey, convertedValue]).exists) {
-            dictionaryData[mappingKey] = dictionaryData[mappingKey] || {};
-        }
-        Object.assign(dictionaryData[mappingKey], { [convertedValue]: extractedData });
+function extendDictionary(dictionary, dictionaryGroup, dictionaryValue) {
+    //console.warn([dictionary, dictionaryGroup, dictionaryValue]);
+    const dictionaryKey = String(dictionaryValue).toLowerCase();
+    if (!resolvePath(dictionary, dictionaryGroup).exists) {
+        dictionary[dictionaryGroup] = {};
+    }
+    if (!resolvePath(dictionary, [dictionaryGroup, dictionaryKey]).exists) {
+        dictionary[dictionaryGroup][dictionaryKey] = dictionaryValue;
     }
 }
 
 /**
  * Extract an entry using a specified mapping
- * @param {Object|string} baseMapping 
- * @param {Object} packDataEntry 
- * @param {string} idType 
- * @param {string} idName 
- * @param {boolean|string} specialExtraction 
- * @param {boolean} addToMapping 
+ * @param {Object|string} baseMapping
+ * @param {Object} packDataEntry
+ * @param {Object} dictionary
+ * @param {string} idType
+ * @param {string} idName
+ * @param {boolean|string} specialExtraction
+ * @param {boolean} addToMapping
  * @returns {Object}
  */
 function extractEntry(
     baseMapping,
     packDataEntry,
+    dictionary,
     idType = "dynamic",
     idName = "name",
     specialExtraction = false,
@@ -249,7 +253,7 @@ function extractEntry(
 
                 // Add to dictionary
                 if (option_addToDictionary) {
-                    extendDictionary(option_dictionaryName, extractedData);
+                    extendDictionary(dictionary, option_dictionaryName, extractedData);
                 }
 
                 // Extract the data
@@ -378,6 +382,7 @@ function extractEntry(
                                 const extractedSubEntry = extractEntry(
                                     option_subMapping,
                                     extractedData[subEntry],
+                                    dictionary,
                                     option_idType !== false ? option_idType : "static",
                                     option_idName !== false ? option_idName : subEntry,
                                     option_specialExtraction,
