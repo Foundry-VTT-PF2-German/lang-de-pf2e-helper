@@ -2,17 +2,36 @@ import { writeFileSync } from "fs";
 import { resolvePath, resolveValue } from "path-value";
 import { convertArray, sortObject } from "../util/utilities.js";
 
+const SKILLS = [
+    "Acrobatics",
+    "Arcana",
+    "Athletics",
+    "Crafting",
+    "Deception",
+    "Diplomacy",
+    "Intimidation",
+    "Medicine",
+    "Nature",
+    "Occultism",
+    "Performance",
+    "Religion",
+    "Society",
+    "Stealth",
+    "Survival",
+    "Thievery",
+];
+
 /**
  * Extract data from a single pack and write extration file
- * @param {string} packName
  * @param {Object} packData
- * @param {Object} packConfig
- * @param {Object} dictionary
+ * @param {Object} database
+ * @param {Object} config
  */
-export function extractPack(packName, packData, packConfig, dictionary) {
+export function extractPack(packData, database, config) {
+    const packConfig = config.packConfig;
     // Create basic json structure
     const extractedPack = {
-        label: packName,
+        label: config.name,
         entries: {},
         mapping: {},
     };
@@ -21,23 +40,25 @@ export function extractPack(packName, packData, packConfig, dictionary) {
     const entries = {};
 
     // Build comparison database?
-    const createComparisonData = resolvePath(packConfig, `packCompendiumMapping.${packName}`).exists ? true : false;
-    const compendiumName = createComparisonData ? packConfig.packCompendiumMapping[packName] : "";
+    const createComparisonData = resolvePath(packConfig, `packCompendiumMapping.${config.name}`).exists ? true : false;
+    const compendiumName = createComparisonData ? packConfig.packCompendiumMapping[config.name] : "";
 
     // Initialize structure if neccessary
     if (createComparisonData) {
-        actorItemComparison[compendiumName] = actorItemComparison[compendiumName] || {};
+        database.actorItemComparison = database.actorItemComparison || {};
+        database.actorItemComparison[compendiumName] = database.actorItemComparison[compendiumName] || {};
     }
 
     // Loop through source data and look for keys included in the mappings
     Object.values(packData).forEach((packDataEntry) => {
         // Add entry to comparison database
         if (createComparisonData) {
-            actorItemComparison[compendiumName][packDataEntry._id] = packDataEntry;
+            database.actorItemComparison[compendiumName][packDataEntry._id] = packDataEntry;
         }
 
-        // Extract entries based on mapping in config file
-        const extractedEntry = extractEntry(CONFIG.mappings[packConfig.mapping], packDataEntry, dictionary);
+        // Extract entries based on mapping in config
+        const entryConfig = { mappings: config.mappings };
+        const extractedEntry = extractEntry(config.mappings[packConfig.mapping], packDataEntry, database, config);
         if (extractedEntry[0] !== undefined) {
             Object.assign(entries, extractedEntry[0]);
         }
@@ -57,40 +78,45 @@ export function extractPack(packName, packData, packConfig, dictionary) {
     extractedPack.mapping = sortObject(extractedPack.mapping);
 
     // Save file to directory
-    writeFileSync(`${CONFIG.filePaths[packConfig.savePath]}/${packName}.json`, JSON.stringify(extractedPack, null, 2));
+    writeFileSync(`${config.savePath}/${config.name}.json`, JSON.stringify(extractedPack, null, 2));
 
-    console.log(`Extracted pack: ${packName}`);
+    console.log(`Extracted pack: ${config.name}`);
 }
 
 /**
  * Extract pack data from a list of pack groups and write extration files
- * @param {Object} packGroupList
  * @param {Array<Object>} packs
- * @param {Object} dictionary
+ * @param {Object} database
+ * @param {Object} config
  */
-export function extractPackGroupList(packGroupList, packs, dictionary) {
-    for (const [packGroup, packConfig] of Object.entries(packGroupList)) {
+export function extractPackGroupList(packs, database, config) {
+    for (const [packGroup, packConfig] of Object.entries(config.packGroupList)) {
+        const packGroupConfig = {
+            name: packGroup,
+            packConfig: packConfig,
+            mappings: config.mappings,
+            savePath: config.filePaths[packConfig.savePath],
+        };
         extractPackGroup(
-            packGroup,
-            packConfig,
             packs.filter((pack) => packConfig.packNames.includes(pack.fileName)),
-            dictionary
+            database,
+            packGroupConfig
         );
     }
 }
 
 /**
  * Extract data from a pack group and write extraction files
- * @param {string} packGroup
- * @param {Object} packConfig
  * @param {Array<Object>} packs
- * @param {Object} dictionary
+ * @param {Object} database
+ * @param {Object} config
  */
-export function extractPackGroup(packGroup, packConfig, packs, dictionary) {
+export function extractPackGroup(packs, database, config) {
     // Loop through packs and extract data defined in mappings
-    console.log(`\n--------------------------\nExtracting: ${packGroup}\n--------------------------`);
+    console.log(`\n--------------------------\nExtracting: ${config.name}\n--------------------------`);
     packs.forEach((pack) => {
-        extractPack(pack.fileName, JSON.parse(pack.content), packConfig, dictionary);
+        config.name = pack.fileName;
+        extractPack(JSON.parse(pack.content), database, config);
     });
 }
 
@@ -138,7 +164,8 @@ function extendDictionary(dictionary, dictionaryGroup, dictionaryValue) {
  * Extract an entry using a specified mapping
  * @param {Object|string} baseMapping
  * @param {Object} packDataEntry
- * @param {Object} dictionary
+ * @param {Object} database
+ * @param {Object} config
  * @param {string} idType
  * @param {string} idName
  * @param {boolean|string} specialExtraction
@@ -148,14 +175,15 @@ function extendDictionary(dictionary, dictionaryGroup, dictionaryValue) {
 function extractEntry(
     baseMapping,
     packDataEntry,
-    dictionary,
+    database,
+    config,
     idType = "dynamic",
     idName = "name",
     specialExtraction = false,
     addToMapping = true
 ) {
     // Check if there already exists a complete mapping, take mapping from config otherwise
-    const entryMapping = typeof baseMapping === "object" ? baseMapping : CONFIG.mappings[baseMapping];
+    const entryMapping = typeof baseMapping === "object" ? baseMapping : config.mappings[baseMapping];
 
     // Apply special extraction rules on entry level
     if (specialExtraction !== false) {
@@ -257,7 +285,7 @@ function extractEntry(
 
                 // Add to dictionary
                 if (option_addToDictionary) {
-                    extendDictionary(dictionary, option_dictionaryName, extractedData);
+                    extendDictionary(database.dictionary, option_dictionaryName, extractedData);
                 }
 
                 // Extract the data
@@ -332,11 +360,13 @@ function extractEntry(
                                     packDataEntry.flags.core.sourceId.includes("Compendium.pf2e")
                                 ) {
                                     const compendiumLink = packDataEntry.flags.core.sourceId.split(".");
-                                    const compendiumEntry = resolvePath(actorItemComparison, [
+                                    const compendiumEntry = resolvePath(database, [
+                                        "actorItemComparison",
                                         `${compendiumLink[1]}.${compendiumLink[2]}`,
                                         compendiumLink[4],
                                     ]).exists
-                                        ? resolveValue(actorItemComparison, [
+                                        ? resolveValue(database, [
+                                              "actorItemComparison",
                                               `${compendiumLink[1]}.${compendiumLink[2]}`,
                                               compendiumLink[4],
                                           ])
@@ -386,7 +416,8 @@ function extractEntry(
                                 const extractedSubEntry = extractEntry(
                                     option_subMapping,
                                     extractedData[subEntry],
-                                    dictionary,
+                                    database,
+                                    config,
                                     option_idType !== false ? option_idType : "static",
                                     option_idName !== false ? option_idName : subEntry,
                                     option_specialExtraction,
