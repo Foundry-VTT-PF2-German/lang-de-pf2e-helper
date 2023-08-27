@@ -11,15 +11,22 @@ export function convertArray(sourceArray) {
 }
 
 /**
- * Sort an object by key
- * @param {Object} sourceObject
+ * Recursively sort an object by key
+ * @param {Object} obj
  * @returns {Object}
  */
-export function sortObject(sourceObject) {
-    return Object.keys(sourceObject)
+export function sortObject(obj) {
+    if (typeof obj !== "object" || obj === null || Array.isArray(obj)) {
+        return obj;
+    }
+
+    const sortedObject = {};
+
+    Object.keys(obj)
         .sort()
-        .reduce((obj, key) => {
-            obj[key] = sourceObject[key];
-            return obj;
-        }, {});
+        .forEach((key) => {
+            sortedObject[key] = recursivelySortObject(obj[key]);
+        });
+
+    return sortedObject;
 }
