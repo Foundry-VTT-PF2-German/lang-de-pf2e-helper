@@ -28,10 +28,15 @@ const SKILLS = [
  * @param {Object} config
  */
 export function extractPack(packData, database, config) {
+    // Get config data
+    const packName = config.name;
     const packConfig = config.packConfig;
+    const mappings = config.mappings;
+    const packSavePath = config.savePath;
+
     // Create basic json structure
     const extractedPack = {
-        label: config.name,
+        label: packName,
         entries: {},
         mapping: {},
     };
@@ -39,26 +44,22 @@ export function extractPack(packData, database, config) {
     // Unsorted extracted entries
     const entries = {};
 
-    // Build comparison database?
-    const createComparisonData = resolvePath(packConfig, `packCompendiumMapping.${config.name}`).exists ? true : false;
-    const compendiumName = createComparisonData ? packConfig.packCompendiumMapping[config.name] : "";
-
-    // Initialize structure if neccessary
-    if (createComparisonData) {
-        database.actorItemComparison = database.actorItemComparison || {};
-        database.actorItemComparison[compendiumName] = database.actorItemComparison[compendiumName] || {};
-    }
+    // Build comparison database for this pack?
+    const createComparisonData = resolvePath(packConfig, ["packCompendiumMapping", packName]).exists ? true : false;
+    database.actorItemComparison = database.actorItemComparison || {};
 
     // Loop through source data and look for keys included in the mappings
     Object.values(packData).forEach((packDataEntry) => {
-        // Add entry to comparison database
+        // Add entry to comparison database if active for this pack
         if (createComparisonData) {
-            database.actorItemComparison[compendiumName][packDataEntry._id] = packDataEntry;
+            const entryUUID = `Compendium.${packConfig.packCompendiumMapping[packName]}.Item.${packDataEntry._id}`;
+            Object.assign(database.actorItemComparison, { [entryUUID]: packDataEntry });
         }
 
         // Extract entries based on mapping in config
-        const entryConfig = { mappings: config.mappings };
-        const extractedEntry = extractEntry(config.mappings[packConfig.mapping], packDataEntry, database, config);
+        const entryConfig = { entryMapping: mappings[packConfig.mapping], mappings: mappings };
+//TODO - checken ob das mittels Array sein muss oder ob auch z.B. über ein Objekt. Außerdem prüfen, ob addMapping vereinfacht werden kann
+        const extractedEntry = extractEntry(packDataEntry, database, entryConfig);
         if (extractedEntry[0] !== undefined) {
             Object.assign(entries, extractedEntry[0]);
         }
@@ -68,19 +69,15 @@ export function extractPack(packData, database, config) {
     });
 
     // Sort entries and assign them to final export object
-    Object.keys(entries)
-        .sort()
-        .forEach(function (mappingKey) {
-            extractedPack.entries[mappingKey] = entries[mappingKey];
-        });
+    extractedPack.entries = sortObject(entries);
 
     // Sort mapping
     extractedPack.mapping = sortObject(extractedPack.mapping);
 
     // Save file to directory
-    writeFileSync(`${config.savePath}/${config.name}.json`, JSON.stringify(extractedPack, null, 2));
+    writeFileSync(`${packSavePath}/${packName}.json`, JSON.stringify(extractedPack, null, 2));
 
-    console.log(`Extracted pack: ${config.name}`);
+    console.log(`Extracted pack: ${packName}`);
 }
 
 /**
@@ -173,7 +170,6 @@ function extendDictionary(dictionary, dictionaryGroup, dictionaryValue) {
  * @returns {Object}
  */
 function extractEntry(
-    baseMapping,
     packDataEntry,
     database,
     config,
@@ -182,8 +178,9 @@ function extractEntry(
     specialExtraction = false,
     addToMapping = true
 ) {
-    // Check if there already exists a complete mapping, take mapping from config otherwise
-    const entryMapping = typeof baseMapping === "object" ? baseMapping : config.mappings[baseMapping];
+    // Get config data
+    const entryMapping = config.entryMapping;
+    const mappings = config.mappings;
 
     // Apply special extraction rules on entry level
     if (specialExtraction !== false) {
@@ -359,16 +356,13 @@ function extractEntry(
                                     resolvePath(packDataEntry, "flags.core.sourceId").exists &&
                                     packDataEntry.flags.core.sourceId.includes("Compendium.pf2e")
                                 ) {
-                                    const compendiumLink = packDataEntry.flags.core.sourceId.split(".");
                                     const compendiumEntry = resolvePath(database, [
                                         "actorItemComparison",
-                                        `${compendiumLink[1]}.${compendiumLink[2]}`,
-                                        compendiumLink[4],
+                                        packDataEntry.flags.core.sourceId,
                                     ]).exists
                                         ? resolveValue(database, [
                                               "actorItemComparison",
-                                              `${compendiumLink[1]}.${compendiumLink[2]}`,
-                                              compendiumLink[4],
+                                              packDataEntry.flags.core.sourceId,
                                           ])
                                         : undefined;
                                     if (typeof compendiumEntry === "undefined") {
@@ -413,11 +407,11 @@ function extractEntry(
                         // Convert nested data in case submappings exist
                         if (option_subMapping) {
                             Object.keys(extractedData).forEach((subEntry) => {
+                                const entryConfig = { entryMapping: mappings[option_subMapping], mappings: mappings };
                                 const extractedSubEntry = extractEntry(
-                                    option_subMapping,
                                     extractedData[subEntry],
                                     database,
-                                    config,
+                                    entryConfig,
                                     option_idType !== false ? option_idType : "static",
                                     option_idName !== false ? option_idName : subEntry,
                                     option_specialExtraction,

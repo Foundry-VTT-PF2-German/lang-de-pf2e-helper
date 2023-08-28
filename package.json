@@ -1,7 +1,9 @@
 {
     "devDependencies": {
+        "@prantlf/jsonlint": "^14.0.3",
         "@zip.js/zip.js": "^2.7.27",
-        "json": "^11.0.0"
+        "json": "^11.0.0",
+        "path-value": "^0.9.5"
     },
     "type": "module"
 }
