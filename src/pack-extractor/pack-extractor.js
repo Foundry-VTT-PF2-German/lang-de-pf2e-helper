@@ -58,7 +58,7 @@ export function extractPack(packData, database, config) {
 
         // Extract entries based on mapping in config
         const entryConfig = { entryMapping: mappings[packConfig.mapping], mappings: mappings };
-//TODO - checken ob das mittels Array sein muss oder ob auch z.B. über ein Objekt. Außerdem prüfen, ob addMapping vereinfacht werden kann
+        //TODO - checken ob das mittels Array sein muss oder ob auch z.B. über ein Objekt. Außerdem prüfen, ob addMapping vereinfacht werden kann
         const extractedEntry = extractEntry(packDataEntry, database, entryConfig);
         if (extractedEntry[0] !== undefined) {
             Object.assign(entries, extractedEntry[0]);
@@ -77,7 +77,7 @@ export function extractPack(packData, database, config) {
     // Save file to directory
     writeFileSync(`${packSavePath}/${packName}.json`, JSON.stringify(extractedPack, null, 2));
 
-    console.log(`Extracted pack: ${packName}`);
+    extractMessage(packName);
 }
 
 /**
@@ -110,7 +110,7 @@ export function extractPackGroupList(packs, database, config) {
  */
 export function extractPackGroup(packs, database, config) {
     // Loop through packs and extract data defined in mappings
-    console.log(`\n--------------------------\nExtracting: ${config.name}\n--------------------------`);
+    extractMessage(config.name, true);
     packs.forEach((pack) => {
         config.name = pack.fileName;
         extractPack(JSON.parse(pack.content), database, config);
@@ -147,7 +147,6 @@ function addMapping(mapping, mappingData, converter = false) {
  * @param {Array<string>} extractedData
  */
 function extendDictionary(dictionary, dictionaryGroup, dictionaryValue) {
-    //console.warn([dictionary, dictionaryGroup, dictionaryValue]);
     const dictionaryKey = String(dictionaryValue).toLowerCase();
     if (!resolvePath(dictionary, dictionaryGroup).exists) {
         dictionary[dictionaryGroup] = {};
@@ -298,107 +297,21 @@ function extractEntry(
                     if (specialExtraction) {
                         // Special extraction for actor items
                         if (specialExtraction === "actorItem") {
-                            // All fields to be extracted are checked against the source id if available
-                            // and only get extracted if values differ from each other
-                            // (exptions: no extraction for the descriptions of ancestries, backgrounds, classes, feats, heritages, and spells)
-                            // Regular extraction if no source id is provided
+                            // Don't extract fields that are excluded for actor items
                             if (option_actorItemExtraction) {
-                                // Do some special treatment first...
-
-                                // ...Don't extract names for skills
-                                if (
-                                    packDataEntry.type === "lore" &&
-                                    mappingKey === "name" &&
-                                    SKILLS.includes(packDataEntry.name)
-                                ) {
-                                    extracted = true;
-
-                                    // ... for weapons, include runes into the name
-                                } else if (
-                                    packDataEntry.type === "weapon" &&
-                                    mappingKey === "name" &&
-                                    !resolvePath(packDataEntry, "system.specific.value").exists
-                                ) {
-                                    const nameAdditions = [];
-                                    // Potency rune
-                                    if (
-                                        resolvePath(packDataEntry, "system.potencyRune.value").exists &&
-                                        packDataEntry.system.potencyRune.value > 0
-                                    ) {
-                                        nameAdditions.push("+".concat(packDataEntry.system.potencyRune.value));
-                                    }
-
-                                    // Other runes and material
-                                    [
-                                        "system.strikingRune.value",
-                                        "system.preciousMaterial.value",
-                                        "system.propertyRune1.value",
-                                        "system.propertyRune2.value",
-                                        "system.propertyRune3.value",
-                                        "system.propertyRune4.value",
-                                    ].forEach((property) => {
-                                        if (
-                                            resolvePath(packDataEntry, property).exists &&
-                                            resolveValue(packDataEntry, property) !== null &&
-                                            resolveValue(packDataEntry, property) !== ""
-                                        ) {
-                                            nameAdditions.push(resolveValue(packDataEntry, property));
-                                        }
-                                    });
-                                    if (nameAdditions.length > 0) {
-                                        currentEntry[mappingKey] = `${extractedData} (${nameAdditions.join(",")})`;
-                                        extracted = true;
-                                    }
-                                }
-                                // Check for source ID
-                                if (
-                                    !extracted &&
-                                    resolvePath(packDataEntry, "flags.core.sourceId").exists &&
-                                    packDataEntry.flags.core.sourceId.includes("Compendium.pf2e")
-                                ) {
-                                    const compendiumEntry = resolvePath(database, [
-                                        "actorItemComparison",
-                                        packDataEntry.flags.core.sourceId,
-                                    ]).exists
-                                        ? resolveValue(database, [
-                                              "actorItemComparison",
-                                              packDataEntry.flags.core.sourceId,
-                                          ])
-                                        : undefined;
-                                    if (typeof compendiumEntry === "undefined") {
-                                        // Data quality check currently not active, because embedded documents don't get checked for broken links in pf2e system
-                                        // console.warn("Broken Link: ".concat(packDataEntry.flags.core.sourceId));
-                                        // Don't extract descriptions for defined item types. Those always use the description from the compendium entry
-                                    } else if (
-                                        mappingKey === "description" &&
-                                        ["ancestry", "background", "class", "feat", "heritage", "spell"].includes(
-                                            packDataEntry.type
-                                        )
-                                    ) {
-                                        extracted = true;
-                                        // Don't extract data if value is identical to compendium data
-                                    } else if (
-                                        resolvePath(compendiumEntry, dataPath).exists &&
-                                        extractedData === resolveValue(compendiumEntry, dataPath)
-                                    ) {
-                                        extracted = true;
-
-                                        // If value differs from compendium data, add translation note for name and description
-                                    } else if (
-                                        resolvePath(compendiumEntry, dataPath).exists &&
-                                        ["description", "name"].includes(mappingKey) &&
-                                        extractedData !== resolveValue(compendiumEntry, dataPath)
-                                    ) {
-                                        currentEntry[
-                                            mappingKey
-                                        ] = `<Compendium> tag will get replaced with text from compendium entry @UUID[${packDataEntry.flags.core.sourceId}]\n${extractedData}`;
-                                        extracted = true;
-                                    }
-                                }
+                                extracted = extractActorItem(
+                                    currentEntry,
+                                    extractedData,
+                                    mappingKey,
+                                    packDataEntry,
+                                    dataPath,
+                                    database
+                                );
                             } else {
                                 extracted = true;
                             }
-                        } else if (specialExtraction === "tableResult") {
+                        }
+                        if (specialExtraction === "tableResult") {
                             currentEntry = extractedData;
                             extracted = true;
                         }
@@ -442,4 +355,146 @@ function extractEntry(
     returnValue.push(Object.keys(currentEntry).length > 0 ? Object.assign({}, { [entryId]: currentEntry }) : undefined);
     returnValue.push(Object.keys(currentMapping).length > 0 ? currentMapping : undefined);
     return returnValue;
+}
+
+/**
+ * Write files from Blob
+ * @param {Array<Object>} files
+ * @param {string} savePath
+ */
+export function extractFiles(files, savePath) {
+    extractMessage("i18n files", true);
+    files.forEach((entry) => {
+        const filePath = `${savePath}/${entry.fileName}.${entry.fileType}`;
+        let content = entry.content;
+
+        if (entry.fileType === "json") {
+            content = JSON.stringify(JSON.parse(content), null, 2);
+        }
+
+        writeFileSync(filePath, content);
+        extractMessage(`${entry.fileName}.${entry.fileType}`);
+    });
+}
+
+/**
+ * Post extraction status messages to console
+ * @param {string} extractedContent   Name of the extracted content
+ * @param {boolean} header    Set for posting a header message
+ */
+function extractMessage(extractedContent, header = false) {
+    const message = header
+        ? `\n--------------------------\nExtracting: ${extractedContent}\n--------------------------`
+        : `Extracted file: ${extractedContent}`;
+    console.log(message);
+}
+
+// All fields to be extracted are checked against the source id if available
+// and only get extracted if values differ from each other
+// (exptions: no extraction for the descriptions of ancestries, backgrounds, classes, feats, heritages, and spells)
+// Regular extraction if no source id is provided
+function extractActorItem(currentEntry, extractedData, mappingKey, packDataEntry, dataPath, database) {
+    const skills = [
+        "Acrobatics",
+        "Arcana",
+        "Athletics",
+        "Crafting",
+        "Deception",
+        "Diplomacy",
+        "Intimidation",
+        "Medicine",
+        "Nature",
+        "Occultism",
+        "Performance",
+        "Religion",
+        "Society",
+        "Stealth",
+        "Survival",
+        "Thievery",
+    ];
+
+    let extracted = false;
+
+    // Do some special treatment first...
+
+    // ...Don't extract names for skills
+    if (packDataEntry.type === "lore" && mappingKey === "name" && skills.includes(packDataEntry.name)) {
+        extracted = true;
+
+        // ... for weapons, include runes into the name
+    } else if (
+        packDataEntry.type === "weapon" &&
+        mappingKey === "name" &&
+        !resolvePath(packDataEntry, "system.specific.value").exists
+    ) {
+        const nameAdditions = [];
+        // Potency rune
+        if (
+            resolvePath(packDataEntry, "system.potencyRune.value").exists &&
+            packDataEntry.system.potencyRune.value > 0
+        ) {
+            nameAdditions.push("+".concat(packDataEntry.system.potencyRune.value));
+        }
+
+        // Other runes and material
+        [
+            "system.strikingRune.value",
+            "system.preciousMaterial.value",
+            "system.propertyRune1.value",
+            "system.propertyRune2.value",
+            "system.propertyRune3.value",
+            "system.propertyRune4.value",
+        ].forEach((property) => {
+            if (
+                resolvePath(packDataEntry, property).exists &&
+                resolveValue(packDataEntry, property) !== null &&
+                resolveValue(packDataEntry, property) !== ""
+            ) {
+                nameAdditions.push(resolveValue(packDataEntry, property));
+            }
+        });
+        if (nameAdditions.length > 0) {
+            currentEntry[mappingKey] = `${extractedData} (${nameAdditions.join(",")})`;
+            extracted = true;
+        }
+    }
+    // Check for source ID
+    if (
+        !extracted &&
+        resolvePath(packDataEntry, "flags.core.sourceId").exists &&
+        packDataEntry.flags.core.sourceId.includes("Compendium.pf2e")
+    ) {
+        const compendiumEntry = resolvePath(database, ["actorItemComparison", packDataEntry.flags.core.sourceId]).exists
+            ? resolveValue(database, ["actorItemComparison", packDataEntry.flags.core.sourceId])
+            : undefined;
+        if (typeof compendiumEntry === "undefined") {
+            // Data quality check currently not active, because embedded documents don't get checked for broken links in pf2e system
+            // console.warn("Broken Link: ".concat(packDataEntry.flags.core.sourceId));
+            // Don't extract descriptions for defined item types. Those always use the description from the compendium entry
+        } else if (
+            mappingKey === "description" &&
+            ["ancestry", "background", "class", "feat", "heritage", "spell"].includes(packDataEntry.type)
+        ) {
+            extracted = true;
+            // Don't extract data if value is identical to compendium data
+        } else if (
+            resolvePath(compendiumEntry, dataPath).exists &&
+            extractedData === resolveValue(compendiumEntry, dataPath)
+        ) {
+            extracted = true;
+
+            // If value differs from compendium data, add translation note for name and description
+        } else if (
+            resolvePath(compendiumEntry, dataPath).exists &&
+            ["description", "name"].includes(mappingKey) &&
+            extractedData !== resolveValue(compendiumEntry, dataPath)
+        ) {
+            currentEntry[
+                mappingKey
+            ] = `<Compendium> tag will get replaced with text from compendium entry @UUID[${packDataEntry.flags.core.sourceId}]\n${extractedData}`;
+            extracted = true;
+        }
+    }
+    console.warn(currentEntry[mappingKey]);
+    return extracted;
 }
