@@ -1,6 +1,6 @@
 {
     "devDependencies": {
-        "@zip.js/zip.js": "^2.7.24",
+        "@zip.js/zip.js": "^2.7.27",
         "json": "^11.0.0"
     },
     "type": "module"
