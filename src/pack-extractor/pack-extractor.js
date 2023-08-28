@@ -495,6 +495,5 @@ function extractActorItem(currentEntry, extractedData, mappingKey, packDataEntry
             extracted = true;
         }
     }
-    console.warn(currentEntry[mappingKey]);
     return extracted;
 }
