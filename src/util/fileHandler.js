@@ -43,7 +43,9 @@ export async function getFileFromURL(url) {
  */
 export function parsePath(filePath) {
     const parts = filePath.split(/\/|\\/g);
-    const [fileName, fileType] = parts.pop().split(".");
+    const fileNameParts = parts.pop().split(".");
+    const fileType = fileNameParts.pop();
+    const fileName = fileNameParts.join(".");
     const path = parts.join("/") + "/";
     return { path: path, fileName: fileName, fileType: fileType };
 }
