@@ -201,9 +201,10 @@ function extractEntry(
     const currentMapping = {};
 
     // Loop through mappings for the entry, extract matching data
-    for (const [mappingKey, mappingData] of Object.entries(entryMapping)) {
+    for (let [mappingKey, mappingData] of Object.entries(entryMapping)) {
         // Get added options for extraction
         const extractOptions = resolvePath(mappingData, "extractOptions").exists ? mappingData.extractOptions : false;
+        mappingKey = resolvePath(extractOptions, "setMappingKey").exists ? extractOptions.setMappingKey : mappingKey;
         const option_actorItemExtraction = resolvePath(extractOptions, "actorItemExtraction").exists
             ? extractOptions.actorItemExtraction
             : true;
@@ -236,118 +237,105 @@ function extractEntry(
         const hasConverter = mappingData.converter ? mappingData.converter : false;
 
         // Check if path to the data field is a single entry or an array of possible paths
-        const dataPaths = resolvePath(mappingData, "path").exists
-            ? Array.isArray(mappingData.path)
-                ? mappingData.path
-                : [mappingData.path]
-            : [];
+        const dataPath = resolvePath(mappingData, "path").exists ? mappingData.path : "";
 
-        // Loop through possible data field paths, take the first one found
-        dataPaths.some((dataPath) => {
-            let dataFound = false;
+        // Check if the current field exists in the db entry
+        let extractedData = resolvePath(packDataEntry, dataPath).exists ? resolveValue(packDataEntry, dataPath) : false;
+        // Add mappings that should always be included
+        if (addToMapping && option_alwaysAddMapping) {
+            addMapping(currentMapping, { [mappingKey]: dataPath }, hasConverter);
+        }
 
-            // Check if the current field exists in the db entry
-            let extractedData = resolvePath(packDataEntry, dataPath).exists
-                ? resolveValue(packDataEntry, dataPath)
-                : false;
-            // Add mappings that should always be included
-            if (addToMapping && option_alwaysAddMapping) {
+        // Extract the data, ignoring empty data fields, objects and arrays
+        // Also ignore numbers, values already containing a localization variable like "PF2E." and other variables
+        if (
+            extractedData &&
+            ((!Array.isArray(extractedData) &&
+                typeof extractedData !== "object" &&
+                extractedData !== null &&
+                isNaN(extractedData) &&
+                extractedData !== "" &&
+                extractedData.substring(0, 4) !== "PF2E" &&
+                extractedData.search(RegExp(`^\\{[^\\}]*\\}$`, "g")) === -1 &&
+                extractedData.search(RegExp(`^<p>@Localize\\[[^\\]]*\\]</p>$`, "g")) === -1) ||
+                (!Array.isArray(extractedData) &&
+                    typeof extractedData === "object" &&
+                    Object.keys(extractedData).length > 0) ||
+                (Array.isArray(extractedData) && extractedData.length > 0))
+        ) {
+
+            // Add mapping
+            if (addToMapping && option_addToMapping && !option_alwaysAddMapping) {
                 addMapping(currentMapping, { [mappingKey]: dataPath }, hasConverter);
             }
 
-            // Extract the data, ignoring empty data fields, objects and arrays
-            // Also ignore numbers, values already containing a localization variable like "PF2E." and other variables
-            if (
-                extractedData &&
-                ((!Array.isArray(extractedData) &&
-                    typeof extractedData !== "object" &&
-                    extractedData !== null &&
-                    isNaN(extractedData) &&
-                    extractedData !== "" &&
-                    extractedData.substring(0, 4) !== "PF2E" &&
-                    extractedData.search(RegExp(`^\\{[^\\}]*\\}$`, "g")) === -1 &&
-                    extractedData.search(RegExp(`^<p>@Localize\\[[^\\]]*\\]</p>$`, "g")) === -1) ||
-                    (!Array.isArray(extractedData) &&
-                        typeof extractedData === "object" &&
-                        Object.keys(extractedData).length > 0) ||
-                    (Array.isArray(extractedData) && extractedData.length > 0))
-            ) {
-                dataFound = true;
+            // Add to dictionary
+            if (option_addToDictionary) {
+                extendDictionary(database.dictionary, option_dictionaryName, extractedData);
+            }
 
-                // Add mapping
-                if (addToMapping && option_addToMapping && !option_alwaysAddMapping) {
-                    addMapping(currentMapping, { [mappingKey]: dataPath }, hasConverter);
+            // Extract the data
+            if (option_extractValue) {
+                // If extracted data is an array, convert it to an object list
+                if (Array.isArray(extractedData) && !resolvePath(extractOptions, "noArrayConvert").exists) {
+                    extractedData = convertArray(extractedData);
                 }
 
-                // Add to dictionary
-                if (option_addToDictionary) {
-                    extendDictionary(database.dictionary, option_dictionaryName, extractedData);
-                }
+                let extracted = false;
+                // Apply special extraction rules on mapping entry level
 
-                // Extract the data
-                if (option_extractValue) {
-                    // If extracted data is an array, convert it to an object list
-                    if (Array.isArray(extractedData) && !resolvePath(extractOptions, "noArrayConvert").exists) {
-                        extractedData = convertArray(extractedData);
-                    }
-
-                    let extracted = false;
-                    // Apply special extraction rules on mapping entry level
-
-                    if (specialExtraction) {
-                        // Special extraction for actor items
-                        if (specialExtraction === "actorItem") {
-                            // Don't extract fields that are excluded for actor items
-                            if (option_actorItemExtraction) {
-                                extracted = extractActorItem(
-                                    currentEntry,
-                                    extractedData,
-                                    mappingKey,
-                                    packDataEntry,
-                                    dataPath,
-                                    database
-                                );
-                            } else {
-                                extracted = true;
-                            }
-                        }
-                        if (specialExtraction === "tableResult") {
-                            currentEntry = extractedData;
+                if (specialExtraction) {
+                    // Special extraction for actor items
+                    if (specialExtraction === "actorItem") {
+                        // Don't extract fields that are excluded for actor items
+                        if (option_actorItemExtraction) {
+                            extracted = extractActorItem(
+                                currentEntry,
+                                extractedData,
+                                mappingKey,
+                                packDataEntry,
+                                dataPath,
+                                database
+                            );
+                        } else {
                             extracted = true;
                         }
                     }
-                    if (!extracted) {
-                        // Convert nested data in case submappings exist
-                        if (option_subMapping) {
-                            Object.keys(extractedData).forEach((subEntry) => {
-                                const entryConfig = { entryMapping: mappings[option_subMapping], mappings: mappings };
-                                const extractedSubEntry = extractEntry(
-                                    extractedData[subEntry],
-                                    database,
-                                    entryConfig,
-                                    option_idType !== false ? option_idType : "static",
-                                    option_idName !== false ? option_idName : subEntry,
-                                    option_specialExtraction,
-                                    option_addSubMappingToMapping
-                                );
-                                if (extractedSubEntry[0] !== undefined) {
-                                    currentEntry[mappingKey] = currentEntry[mappingKey] || {};
-                                    Object.assign(currentEntry[mappingKey], extractedSubEntry[0]);
-                                }
-                                if (extractedSubEntry[1] !== undefined) {
-                                    addMapping(currentMapping, extractedSubEntry[1]);
-                                }
-                            });
+                    if (specialExtraction === "tableResult") {
+                        currentEntry = extractedData;
+                        extracted = true;
+                    }
+                }
+                if (!extracted) {
+                    // Convert nested data in case submappings exist
+                    if (option_subMapping) {
+                        Object.keys(extractedData).forEach((subEntry) => {
+                            const entryConfig = { entryMapping: mappings[option_subMapping], mappings: mappings };
+                            const extractedSubEntry = extractEntry(
+                                extractedData[subEntry],
+                                database,
+                                entryConfig,
+                                option_idType !== false ? option_idType : "static",
+                                option_idName !== false ? option_idName : subEntry,
+                                option_specialExtraction,
+                                option_addSubMappingToMapping
+                            );
+                            if (extractedSubEntry[0] !== undefined) {
+                                currentEntry[mappingKey] = currentEntry[mappingKey] || {};
+                                Object.assign(currentEntry[mappingKey], extractedSubEntry[0]);
+                            }
+                            if (extractedSubEntry[1] !== undefined) {
+                                addMapping(currentMapping, extractedSubEntry[1]);
+                            }
+                        });
 
-                            // Extract the plain entry, taking special extractions into account
-                        } else {
-                            currentEntry[mappingKey] = extractedData;
-                        }
+                        // Extract the plain entry, taking special extractions into account
+                    } else {
+                        currentEntry[mappingKey] = extractedData;
                     }
                 }
             }
-            return dataFound;
-        });
+        }
     }
     // create the return value, consisting of the data and the mapping
     const returnValue = [];
