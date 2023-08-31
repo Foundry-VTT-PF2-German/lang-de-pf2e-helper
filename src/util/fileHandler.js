@@ -1,3 +1,4 @@
+import { writeFileSync } from "fs";
 import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
 import { postExtractMessage } from "../../src/pack-extractor/pack-extractor.js";
 
