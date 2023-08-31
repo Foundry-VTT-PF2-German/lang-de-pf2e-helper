@@ -1,387 +1,266 @@
-import { writeFileSync } from "fs";
 import { resolvePath, resolveValue } from "path-value";
-import { convertArray, sortObject } from "../util/utilities.js";
-
-const SKILLS = [
-    "Acrobatics",
-    "Arcana",
-    "Athletics",
-    "Crafting",
-    "Deception",
-    "Diplomacy",
-    "Intimidation",
-    "Medicine",
-    "Nature",
-    "Occultism",
-    "Performance",
-    "Religion",
-    "Society",
-    "Stealth",
-    "Survival",
-    "Thievery",
-];
+import { convertArray, sortObject, mergeNestedObjects } from "../util/utilities.js";
 
 /**
- * Extract data from a single pack and write extration file
- * @param {Object} packData
- * @param {Object} database
- * @param {Object} config
+ * Extract pack data from a list of pack groups
+ * Returns extracted data and a dictionary for specified fields
+ *
+ * @param {Array<Object>} packs An array of compendium packs
+ * @param {Object} config       Contains the config for the packGroupList
+ * @returns {Object}            Extracted data, stored in extractedPackGroups and packGroupListDictionary
  */
-export function extractPack(packData, database, config) {
-    // Get config data
-    const packName = config.name;
-    const packConfig = config.packConfig;
-    const mappings = config.mappings;
-    const packSavePath = config.savePath;
-
-    // Create basic json structure
-    const extractedPack = {
-        label: packName,
-        entries: {},
-        mapping: {},
+export function extractPackGroupList(packs, config) {
+    const extractedPackGroupListData = {
+        extractedPackGroups: {},
+        packGroupListDictionary: {},
     };
-
-    // Unsorted extracted entries
-    const entries = {};
-
-    // Build comparison database for this pack?
-    const createComparisonData = resolvePath(packConfig, ["packCompendiumMapping", packName]).exists ? true : false;
-    database.actorItemComparison = database.actorItemComparison || {};
-
-    // Loop through source data and look for keys included in the mappings
-    Object.values(packData).forEach((packDataEntry) => {
-        // Add entry to comparison database if active for this pack
-        if (createComparisonData) {
-            const entryUUID = `Compendium.${packConfig.packCompendiumMapping[packName]}.Item.${packDataEntry._id}`;
-            Object.assign(database.actorItemComparison, { [entryUUID]: packDataEntry });
-        }
-
-        // Extract entries based on mapping in config
-        const entryConfig = { entryMapping: mappings[packConfig.mapping], mappings: mappings };
-        //TODO - checken ob das mittels Array sein muss oder ob auch z.B. über ein Objekt. Außerdem prüfen, ob addMapping vereinfacht werden kann
-        const extractedEntry = extractEntry(packDataEntry, database, entryConfig);
-        if (extractedEntry[0] !== undefined) {
-            Object.assign(entries, extractedEntry[0]);
-        }
-        if (extractedEntry[1] !== undefined) {
-            addMapping(extractedPack.mapping, extractedEntry[1]);
-        }
-    });
-
-    // Sort entries and assign them to final export object
-    extractedPack.entries = sortObject(entries);
-
-    // Sort mapping
-    extractedPack.mapping = sortObject(extractedPack.mapping);
-
-    // Save file to directory
-    writeFileSync(`${packSavePath}/${packName}.json`, JSON.stringify(extractedPack, null, 2));
-
-    extractMessage(packName);
-}
-
-/**
- * Extract pack data from a list of pack groups and write extration files
- * @param {Array<Object>} packs
- * @param {Object} database
- * @param {Object} config
- */
-export function extractPackGroupList(packs, database, config) {
-    for (const [packGroup, packConfig] of Object.entries(config.packGroupList)) {
-        const packGroupConfig = {
-            name: packGroup,
-            packConfig: packConfig,
-            mappings: config.mappings,
-            savePath: config.filePaths[packConfig.savePath],
-        };
-        extractPackGroup(
-            packs.filter((pack) => packConfig.packNames.includes(pack.fileName)),
-            database,
-            packGroupConfig
+    for (const [groupName, packGroupConfig] of Object.entries(config)) {
+        const extractedPackGroupData = extractPackGroup(
+            groupName,
+            packs.filter((pack) => packGroupConfig.packNames.includes(pack.fileName)),
+            packGroupConfig.mapping
+        );
+        extractedPackGroupListData.extractedPackGroups[groupName] = extractedPackGroupData.extractedPacks;
+        extractedPackGroupListData.packGroupListDictionary = mergeNestedObjects(
+            extractedPackGroupListData.packGroupListDictionary,
+            extractedPackGroupData.packGroupDictionary
         );
     }
+    return extractedPackGroupListData;
 }
 
 /**
- * Extract data from a pack group and write extraction files
- * @param {Array<Object>} packs
- * @param {Object} database
- * @param {Object} config
+ * Extract pack data from a pack group
+ * Returns extracted data and a dictionary for specified fields
+ *
+ * @param {Array<Object>} groupName Name of the pack group
+ * @param {Array<Object>} packs     An array of compendium packs
+ * @param {Object} mapping          Contains the mapping for the packGroup
+ * @returns {Object}                Extracted data, stored in extractedPacks and packGroupDictionary
  */
-export function extractPackGroup(packs, database, config) {
-    // Loop through packs and extract data defined in mappings
-    extractMessage(config.name, true);
+export function extractPackGroup(groupName, packs, mapping) {
+    postExtractMessage(groupName, true);
+
+    const extractedPackGroupData = {
+        extractedPacks: {},
+        packGroupDictionary: {},
+    };
+
     packs.forEach((pack) => {
-        config.name = pack.fileName;
-        extractPack(JSON.parse(pack.content), database, config);
+        const extractedPackData = extractPack(pack.fileName, JSON.parse(pack.content), mapping);
+        extractedPackGroupData.extractedPacks[pack.fileName] = extractedPackData.extractedPack;
+        extractedPackGroupData.packGroupDictionary = mergeNestedObjects(
+            extractedPackGroupData.packGroupDictionary,
+            extractedPackData.packDictionary
+        );
     });
+
+    return extractedPackGroupData;
 }
 
 /**
- * Add mappingData to existing mapping object without duplicates
- * @param {Object} mapping
- * @param {Object} mappingData
- * @param {boolean} converter
+ * Extract data from a pack
+ * Returns extracted data and a dictionary for specified fields
+ *
+ * @param {Array<Object>} packName  Name of the pack
+ * @param {Array<Object>} pack      A compendium pack
+ * @param {Object} mapping          Contains the mapping for the pack
+ * @returns {Object}                Extracted data, stored in extractedPack and packDictionary
  */
-function addMapping(mapping, mappingData, converter = false) {
-    Object.keys(mappingData).forEach((mappingKey) => {
-        if (!resolvePath(mapping, mappingKey).exists) {
-            // Check if the current mapping entry already contains a complete converter mapping
-            if (resolvePath(mappingData, [mappingKey, converter]).exists) {
-                Object.assign(mapping, { [mappingKey]: mappingData[mappingKey] });
-            } else {
-                const newMapping = converter
-                    ? { path: mappingData[mappingKey], converter: converter }
-                    : mappingData[mappingKey];
+export function extractPack(packName, pack, mapping) {
+    postExtractMessage(packName);
 
-                Object.assign(mapping, { [mappingKey]: newMapping });
-            }
-        }
+    const extractedPackData = {
+        extractedPack: {
+            label: packName,
+            entries: {},
+            mapping: {},
+        },
+        packDictionary: {},
+    };
+
+    pack.forEach((entry) => {
+        const extractedEntryData = extractEntry(entry, mapping);
+
+        extractedPackData.extractedPack.entries[entry.name] = extractedEntryData.extractedEntry;
+
+        extractedPackData.extractedPack.mapping = mergeNestedObjects(
+            extractedPackData.extractedPack.mapping,
+            extractedEntryData.entryMapping
+        );
+
+        extractedPackData.packDictionary = mergeNestedObjects(
+            extractedPackData.packDictionary,
+            extractedEntryData.entryDictionary
+        );
     });
+    extractedPackData.extractedPack.entries = sortObject(extractedPackData.extractedPack.entries);
+    return extractedPackData;
 }
 
 /**
- * Extends dictionary with new extracted data without duplicates
- * @param {Object} dictionary
- * @param {string} mappingKey
- * @param {Array<string>} extractedData
+ * Extract data from an entry
+ * Returns extracted data, a dictionary, and a mapping for specified fields
+ *
+ * @param {Object} entry                                                                Entry with data that should get extracted
+ * @param {Object} mapping                                                              Paths to fields that should get extracted
+ * @param {boolean|string} nestedEntryType                                              Specifies, if the entry is nested within other entries, e.g. an ector item
+ * @returns {{extractedEntry: Object, entryMapping: Object, entryDictionary: Object}}   Extracted data, mapping, and dictionary entries
  */
-function extendDictionary(dictionary, dictionaryGroup, dictionaryValue) {
-    const dictionaryKey = String(dictionaryValue).toLowerCase();
-    if (!resolvePath(dictionary, dictionaryGroup).exists) {
-        dictionary[dictionaryGroup] = {};
-    }
-    if (!resolvePath(dictionary, [dictionaryGroup, dictionaryKey]).exists) {
-        dictionary[dictionaryGroup][dictionaryKey] = dictionaryValue;
-    }
-}
+export function extractEntry(entry, mapping, nestedEntryType = false) {
+    const extractedEntryData = {
+        extractedEntry: {},
+        entryMapping: {},
+        entryDictionary: {},
+    };
 
-/**
- * Extract an entry using a specified mapping
- * @param {Object|string} baseMapping
- * @param {Object} packDataEntry
- * @param {Object} database
- * @param {Object} config
- * @param {string} idType
- * @param {string} idName
- * @param {boolean|string} specialExtraction
- * @param {boolean} addToMapping
- * @returns {Object}
- */
-function extractEntry(
-    packDataEntry,
-    database,
-    config,
-    idType = "dynamic",
-    idName = "name",
-    specialExtraction = false,
-    addToMapping = true
-) {
-    // Get config data
-    const entryMapping = config.entryMapping;
-    const mappings = config.mappings;
-
-    // Apply special extraction rules on entry level
-    if (specialExtraction !== false) {
-        if (specialExtraction === "actorItem") {
-            idType = "static";
-            idName = `${packDataEntry.type}->`;
-            if (packDataEntry.type === "melee") {
-                idName = `strike-${packDataEntry.system.weaponType.value}->`;
-            }
-            idName = idName.concat(`${packDataEntry.name}`);
-        } else if (specialExtraction === "tableResult") {
-            idType = "static";
-            idName = `${packDataEntry.range[0]}-${packDataEntry.range[1]}`;
-        }
-    }
-
-    // Initialize variables for data and mapping extraction and get
-    let currentEntry = {};
-    const currentMapping = {};
+    // Initialize default extract options for entry fields
+    const defaultExtractOptions = {
+        addToDictionary: false,
+        addToMapping: true,
+        alternateMappingKey: false,
+        alwaysAddMapping: false,
+        convertArray: true,
+        extractForActorItem: true,
+        extractValue: true,
+        specialExtraction: false,
+        subMapping: false,
+    };
 
     // Loop through mappings for the entry, extract matching data
-    for (let [mappingKey, mappingData] of Object.entries(entryMapping)) {
-        // Get added options for extraction
-        const extractOptions = resolvePath(mappingData, "extractOptions").exists ? mappingData.extractOptions : false;
-        mappingKey = resolvePath(extractOptions, "setMappingKey").exists ? extractOptions.setMappingKey : mappingKey;
-        const option_actorItemExtraction = resolvePath(extractOptions, "actorItemExtraction").exists
-            ? extractOptions.actorItemExtraction
-            : true;
-        const option_addSubMappingToMapping = resolvePath(extractOptions, "addSubMappingToMapping").exists
-            ? extractOptions.addSubMappingToMapping
-            : false;
-        const option_addToDictionary = resolvePath(extractOptions, "addToDictionary").exists
-            ? extractOptions.addToDictionary
-            : false;
-        const option_addToMapping = resolvePath(extractOptions, "addToMapping").exists
-            ? extractOptions.addToMapping
-            : true;
-        const option_alwaysAddMapping = resolvePath(extractOptions, "alwaysAddMapping").exists
-            ? extractOptions.alwaysAddMapping
-            : false;
-        const option_extractValue = resolvePath(extractOptions, "extractValue").exists
-            ? extractOptions.extractValue
-            : true;
-        const option_dictionaryName = resolvePath(extractOptions, "dictionaryName").exists
-            ? extractOptions.dictionaryName
-            : mappingKey;
-        const option_idType = resolvePath(extractOptions, "idType").exists ? extractOptions.idType : false;
-        const option_idName = resolvePath(extractOptions, "idName").exists ? extractOptions.idName : false;
-        const option_specialExtraction = resolvePath(extractOptions, "specialExtraction").exists
-            ? extractOptions.specialExtraction
-            : false;
-        const option_subMapping = resolvePath(extractOptions, "subMapping").exists ? extractOptions.subMapping : false;
+    for (let [mappingKey, mappingData] of Object.entries(mapping)) {
+        // Get extract options for the current mapping entry
+        const extractOptions = mappingData.extractOptions
+            ? { ...defaultExtractOptions, ...mappingData.extractOptions }
+            : defaultExtractOptions;
+
+        // Check is alternate mapping key should be used
+        mappingKey = extractOptions.alternateMappingKey ? extractOptions.alternateMappingKey : mappingKey;
 
         // Check if the current field uses a converter
         const hasConverter = mappingData.converter ? mappingData.converter : false;
 
-        // Check if path to the data field is a single entry or an array of possible paths
-        const dataPath = resolvePath(mappingData, "path").exists ? mappingData.path : "";
+        // Check if the current field exists in the compendium entry and extract its value
+        let extractedValue = resolvePath(entry, mappingData.path).exists
+            ? resolveValue(entry, mappingData.path)
+            : false;
 
-        // Check if the current field exists in the db entry
-        let extractedData = resolvePath(packDataEntry, dataPath).exists ? resolveValue(packDataEntry, dataPath) : false;
         // Add mappings that should always be included
-        if (addToMapping && option_alwaysAddMapping) {
-            addMapping(currentMapping, { [mappingKey]: dataPath }, hasConverter);
+        if (extractOptions.alwaysAddMapping) {
+            addMapping(extractedEntryData.entryMapping, { [mappingKey]: mappingData.path }, hasConverter);
         }
 
-        // Extract the data, ignoring empty data fields, objects and arrays
-        // Also ignore numbers, values already containing a localization variable like "PF2E." and other variables
-        if (
-            extractedData &&
-            ((!Array.isArray(extractedData) &&
-                typeof extractedData !== "object" &&
-                extractedData !== null &&
-                isNaN(extractedData) &&
-                extractedData !== "" &&
-                extractedData.substring(0, 4) !== "PF2E" &&
-                extractedData.search(RegExp(`^\\{[^\\}]*\\}$`, "g")) === -1 &&
-                extractedData.search(RegExp(`^<p>@Localize\\[[^\\]]*\\]</p>$`, "g")) === -1) ||
-                (!Array.isArray(extractedData) &&
-                    typeof extractedData === "object" &&
-                    Object.keys(extractedData).length > 0) ||
-                (Array.isArray(extractedData) && extractedData.length > 0))
-        ) {
+        // Check if the current field is relevant for localization
+        // Skip further steps if not relevant
+        if (!checkLocalizationRelevance(extractedValue)) continue;
 
-            // Add mapping
-            if (addToMapping && option_addToMapping && !option_alwaysAddMapping) {
-                addMapping(currentMapping, { [mappingKey]: dataPath }, hasConverter);
-            }
+        // Further progress extraction steps if field is relevant for localization
 
-            // Add to dictionary
-            if (option_addToDictionary) {
-                extendDictionary(database.dictionary, option_dictionaryName, extractedData);
-            }
-
-            // Extract the data
-            if (option_extractValue) {
-                // If extracted data is an array, convert it to an object list
-                if (Array.isArray(extractedData) && !resolvePath(extractOptions, "noArrayConvert").exists) {
-                    extractedData = convertArray(extractedData);
-                }
-
-                let extracted = false;
-                // Apply special extraction rules on mapping entry level
-
-                if (specialExtraction) {
-                    // Special extraction for actor items
-                    if (specialExtraction === "actorItem") {
-                        // Don't extract fields that are excluded for actor items
-                        if (option_actorItemExtraction) {
-                            extracted = extractActorItem(
-                                currentEntry,
-                                extractedData,
-                                mappingKey,
-                                packDataEntry,
-                                dataPath,
-                                database
-                            );
-                        } else {
-                            extracted = true;
-                        }
-                    }
-                    if (specialExtraction === "tableResult") {
-                        currentEntry = extractedData;
-                        extracted = true;
-                    }
-                }
-                if (!extracted) {
-                    // Convert nested data in case submappings exist
-                    if (option_subMapping) {
-                        Object.keys(extractedData).forEach((subEntry) => {
-                            const entryConfig = { entryMapping: mappings[option_subMapping], mappings: mappings };
-                            const extractedSubEntry = extractEntry(
-                                extractedData[subEntry],
-                                database,
-                                entryConfig,
-                                option_idType !== false ? option_idType : "static",
-                                option_idName !== false ? option_idName : subEntry,
-                                option_specialExtraction,
-                                option_addSubMappingToMapping
-                            );
-                            if (extractedSubEntry[0] !== undefined) {
-                                currentEntry[mappingKey] = currentEntry[mappingKey] || {};
-                                Object.assign(currentEntry[mappingKey], extractedSubEntry[0]);
-                            }
-                            if (extractedSubEntry[1] !== undefined) {
-                                addMapping(currentMapping, extractedSubEntry[1]);
-                            }
-                        });
-
-                        // Extract the plain entry, taking special extractions into account
-                    } else {
-                        currentEntry[mappingKey] = extractedData;
-                    }
-                }
-            }
+        // Add mapping
+        if (extractOptions.addToMapping && !extractOptions.alwaysAddMapping) {
+            addMapping(extractedEntryData.entryMapping, { [mappingKey]: mappingData.path }, hasConverter);
         }
+
+        // Add to dictionary
+        if (extractOptions.addToDictionary) {
+            extractedEntryData.entryDictionary = mergeNestedObjects(extractedEntryData.entryDictionary, {
+                [mappingKey]: { [String(extractedValue).toLowerCase()]: extractedValue },
+            });
+        }
+
+        // Check if the current field should get extracted
+        // Skip further steps if not
+        if (!extractOptions.extractValue) continue;
+
+        // Don't extract fields that are excluded for actor items
+        if (nestedEntryType === "actorItem" && !extractOptions.extractForActorItem) continue;
+
+        // Further progress extraction steps if field should get extracted
+
+        // If extracted value is an array, convert it to an object list
+        if (Array.isArray(extractedValue) && extractOptions.convertArray) {
+            extractedValue = convertArray(extractedValue);
+        }
+
+        if (extractOptions.subMapping) {
+            // Loop through list of sub entries and extract their data
+            Object.keys(extractedValue).forEach((subEntry) => {
+                let subEntryKey = subEntry;
+                // For actor items, build special key indicate the subentry is an actor item to start a modified extraction
+                if (extractOptions.specialExtraction === "actorItems") {
+                    subEntryKey = `${extractedValue[subEntry].type}->`;
+                    if (extractedValue[subEntry].type === "melee") {
+                        subEntryKey = `strike-${extractedValue[subEntry].system.weaponType.value}->`;
+                    }
+                    subEntryKey = subEntryKey.concat(`${extractedValue[subEntry].name}`);
+                    nestedEntryType = "actorItems";
+                }
+
+                // For table results, build special key consisting of the roll ranges
+                if (extractOptions.specialExtraction === "tableResults") {
+                    subEntryKey = `${extractedValue[subEntry].range[0]}-${extractedValue[subEntry].range[1]}`;
+                    nestedEntryType = "tableResults";
+                }
+
+                // For journal pages, build special key consisting of the sub entry name
+                if (extractOptions.specialExtraction === "journalPages") {
+                    subEntryKey = extractedValue[subEntry].name;
+                }
+
+                const extractedSubEntry = extractEntry(
+                    extractedValue[subEntry],
+                    extractOptions.subMapping,
+                    nestedEntryType
+                );
+
+                // Initialize structure for the current entry in order to receive subentry data and assign subentry data
+                if (Object.keys(extractedSubEntry.extractedEntry).length > 0) {
+                    extractedEntryData.extractedEntry[mappingKey] = extractedEntryData.extractedEntry[mappingKey] || {};
+                    Object.assign(extractedEntryData.extractedEntry[mappingKey], {
+                        [subEntryKey]: extractedSubEntry.extractedEntry,
+                    });
+                }
+
+                extractedEntryData.entryDictionary = mergeNestedObjects(
+                    extractedEntryData.entryDictionary,
+                    extractedSubEntry.entryDictionary
+                );
+            });
+            continue;
+        }
+        // Apply special extraction rules on value level
+        // Special extraction for actor items
+        if (nestedEntryType === "actorItems") {
+            const formatedActorItem = formatActorItem(extractedValue, mappingKey, entry);
+            if (formatedActorItem) {
+                extractedEntryData.extractedEntry[mappingKey] = formatedActorItem;
+            }
+            continue;
+        }
+
+        // For tableResults, return the plain value instead of an object using the mapping key
+        // This is neccessary due to the required babele data structure for rollable tables
+        if (nestedEntryType === "tableResults") {
+            extractedEntryData.extractedEntry = extractedValue;
+            continue;
+        }
+
+        extractedEntryData.extractedEntry[mappingKey] = extractedValue;
     }
-    // create the return value, consisting of the data and the mapping
-    const returnValue = [];
-    const entryId = idType === "dynamic" ? packDataEntry[idName] : idName;
-    returnValue.push(Object.keys(currentEntry).length > 0 ? Object.assign({}, { [entryId]: currentEntry }) : undefined);
-    returnValue.push(Object.keys(currentMapping).length > 0 ? currentMapping : undefined);
-    return returnValue;
+    return extractedEntryData;
 }
 
 /**
- * Write files from Blob
- * @param {Array<Object>} files
- * @param {string} savePath
+ * Formats an extracted value for an actor item
+ * This is neccessary, due to the Foundry data structure of many actor items being
+ * copies from compendium entries, but receive changes in differenz fields (e.g. name)
+ *
+ * @param {string} extractedValue   The extracted value that should get formated
+ * @param {string} mappingKey       The data field that got its value extracted
+ * @param {Object} item             The current actor item
+ * @returns {string}                The formated value
  */
-export function extractFiles(files, savePath) {
-    extractMessage("i18n files", true);
-    files.forEach((entry) => {
-        const filePath = `${savePath}/${entry.fileName}.${entry.fileType}`;
-        let content = entry.content;
-
-        if (entry.fileType === "json") {
-            content = JSON.stringify(JSON.parse(content), null, 2);
-        }
-
-        writeFileSync(filePath, content);
-        extractMessage(`${entry.fileName}.${entry.fileType}`);
-    });
-}
-
-/**
- * Post extraction status messages to console
- * @param {string} extractedContent   Name of the extracted content
- * @param {boolean} header    Set for posting a header message
- */
-function extractMessage(extractedContent, header = false) {
-    const message = header
-        ? `\n--------------------------\nExtracting: ${extractedContent}\n--------------------------`
-        : `Extracted file: ${extractedContent}`;
-    console.log(message);
-}
-
-// All fields to be extracted are checked against the source id if available
-// and only get extracted if values differ from each other
-// (exptions: no extraction for the descriptions of ancestries, backgrounds, classes, feats, heritages, and spells)
-// Regular extraction if no source id is provided
-function extractActorItem(currentEntry, extractedData, mappingKey, packDataEntry, dataPath, database) {
+function formatActorItem(extractedValue, mappingKey, item) {
     const skills = [
         "Acrobatics",
         "Arcana",
@@ -401,27 +280,18 @@ function extractActorItem(currentEntry, extractedData, mappingKey, packDataEntry
         "Thievery",
     ];
 
-    let extracted = false;
-
     // Do some special treatment first...
 
-    // ...Don't extract names for skills
-    if (packDataEntry.type === "lore" && mappingKey === "name" && skills.includes(packDataEntry.name)) {
-        extracted = true;
-
-        // ... for weapons, include runes into the name
-    } else if (
-        packDataEntry.type === "weapon" &&
-        mappingKey === "name" &&
-        !resolvePath(packDataEntry, "system.specific.value").exists
-    ) {
+    // ...don't extract names for skills
+    if (item.type === "lore" && mappingKey === "name" && skills.includes(item.name)) {
+        return false;
+    }
+    // ... for weapons, include runes into the name
+    if (item.type === "weapon" && mappingKey === "name" && !resolvePath(item, "system.specific.value").exists) {
         const nameAdditions = [];
         // Potency rune
-        if (
-            resolvePath(packDataEntry, "system.potencyRune.value").exists &&
-            packDataEntry.system.potencyRune.value > 0
-        ) {
-            nameAdditions.push("+".concat(packDataEntry.system.potencyRune.value));
+        if (resolvePath(item, "system.potencyRune.value").exists && item.system.potencyRune.value > 0) {
+            nameAdditions.push("+".concat(item.system.potencyRune.value));
         }
 
         // Other runes and material
@@ -434,54 +304,92 @@ function extractActorItem(currentEntry, extractedData, mappingKey, packDataEntry
             "system.propertyRune4.value",
         ].forEach((property) => {
             if (
-                resolvePath(packDataEntry, property).exists &&
-                resolveValue(packDataEntry, property) !== null &&
-                resolveValue(packDataEntry, property) !== ""
+                resolvePath(item, property).exists &&
+                resolveValue(item, property) !== null &&
+                resolveValue(item, property) !== ""
             ) {
-                nameAdditions.push(resolveValue(packDataEntry, property));
+                nameAdditions.push(resolveValue(item, property));
             }
         });
         if (nameAdditions.length > 0) {
-            currentEntry[mappingKey] = `${extractedData} (${nameAdditions.join(",")})`;
-            extracted = true;
+            return `${extractedValue} (${nameAdditions.join(",")})`;
         }
     }
-    // Check for source ID
-    if (
-        !extracted &&
-        resolvePath(packDataEntry, "flags.core.sourceId").exists &&
-        packDataEntry.flags.core.sourceId.includes("Compendium.pf2e")
-    ) {
-        const compendiumEntry = resolvePath(database, ["actorItemComparison", packDataEntry.flags.core.sourceId]).exists
-            ? resolveValue(database, ["actorItemComparison", packDataEntry.flags.core.sourceId])
-            : undefined;
-        if (typeof compendiumEntry === "undefined") {
-            // Data quality check currently not active, because embedded documents don't get checked for broken links in pf2e system
-            // console.warn("Broken Link: ".concat(packDataEntry.flags.core.sourceId));
-            // Don't extract descriptions for defined item types. Those always use the description from the compendium entry
-        } else if (
-            mappingKey === "description" &&
-            ["ancestry", "background", "class", "feat", "heritage", "spell"].includes(packDataEntry.type)
-        ) {
-            extracted = true;
-            // Don't extract data if value is identical to compendium data
-        } else if (
-            resolvePath(compendiumEntry, dataPath).exists &&
-            extractedData === resolveValue(compendiumEntry, dataPath)
-        ) {
-            extracted = true;
 
-            // If value differs from compendium data, add translation note for name and description
-        } else if (
-            resolvePath(compendiumEntry, dataPath).exists &&
-            ["description", "name"].includes(mappingKey) &&
-            extractedData !== resolveValue(compendiumEntry, dataPath)
+    // Check if the item is from a compendium
+    if (resolvePath(item, "flags.core.sourceId").exists && item.flags.core.sourceId.includes("Compendium.pf2e")) {
+        // ...Don't extract names for defined item types. Those always use the name from the compendium entry
+        if (mappingKey === "name" && ["ancestry", "background", "class"].includes(item.type)) {
+            return false;
+        }
+        // Don't extract descriptions for defined item types. Those always use the description from the compendium entry
+        if (
+            mappingKey === "description" &&
+            ["ancestry", "background", "class", "feat", "heritage", "spell"].includes(item.type)
         ) {
-            currentEntry[
-                mappingKey
-            ] = `<Compendium> tag will get replaced with text from compendium entry @UUID[${packDataEntry.flags.core.sourceId}]\n${extractedData}`;
-            extracted = true;
+            return false;
+        }
+        // Add note for description and name to use <Compendium> as a translation if the value should be taken from the compendium
+        if (["description", "name"].includes(mappingKey)) {
+            return `<Compendium> tag will get replaced with text from compendium entry @UUID[${item.flags.core.sourceId}]\n${extractedValue}`;
         }
     }
-    return extracted;
+    return extractedValue;
+}
+
+/**
+ * Add mappingData to existing mapping object without duplicates
+ * @param {Object} mapping      The current mapping data
+ * @param {Object} mappingData  The new mapping that should get added
+ * @param {boolean} converter   Specifies if the added mapping has a converter entry
+ */
+function addMapping(mapping, mappingData, converter = false) {
+    Object.keys(mappingData).forEach((mappingKey) => {
+        if (!resolvePath(mapping, mappingKey).exists) {
+            // Check if the current mapping entry already contains a complete converter mapping
+            if (resolvePath(mappingData, [mappingKey, converter]).exists) {
+                Object.assign(mapping, { [mappingKey]: mappingData[mappingKey] });
+            } else {
+                const newMapping = converter
+                    ? { path: mappingData[mappingKey], converter: converter }
+                    : mappingData[mappingKey];
+
+                Object.assign(mapping, { [mappingKey]: newMapping });
+            }
+        }
+    });
+}
+
+/**
+ * Post extraction status messages to console
+ * @param {string} extractedContent Name of the extracted content
+ * @param {boolean} header          Set for posting a header message
+ */
+export function postExtractMessage(extractedContent, header = false) {
+    const message = header
+        ? `\n--------------------------\nExtracting: ${extractedContent}\n--------------------------`
+        : `Extracted file: ${extractedContent}`;
+    console.log(message);
+}
+
+/**
+ * Check data for localization relevance
+ * Ignore empty data fields, empty arrays, and empty objects
+ * Ignore numbers, values already containing a localization variable like "PF2E." and other variables
+ *
+ * @param {*} data      The data that should get checked for relevance
+ * @return {boolean}    The check result
+ */
+function checkLocalizationRelevance(data) {
+    if (!data) return false;
+    if (Array.isArray(data) && !data.length > 0) return false;
+    if (!Array.isArray(data) && typeof data === "object" && !Object.keys(data).length > 0) return false;
+    if (!Array.isArray(data) && typeof data !== "object") {
+        if (data === null || data === "") return false;
+        if (!isNaN(data)) return false;
+        if (data.substring(0, 4) === "PF2E") return false;
+        if (data.search(RegExp(`^\\{[^\\}]*\\}$`, "g")) !== -1) return false;
+        if (data.search(RegExp(`^<p>@Localize\\[[^\\]]*\\]</p>$`, "g")) !== -1) return false;
+    }
+    return true;
 }
