@@ -1,9 +1,10 @@
 import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
+import { postExtractMessage } from "../../src/pack-extractor/pack-extractor.js";
 
 /**
- * Read zip file, return array of objects containing filename, file path, and file content
- * @param {Blob} file
- * @returns {Promise}
+ * Read zip file, return array of objects containing filename, file type, file path, and file content (as string)
+ * @param {Blob} file                                                                       The file as Blob
+ * @returns {Promise<{path: string, fileName: string, fileType: string, content: string}>}  Promise containing file name, file type, file path, and file content
  */
 export async function getContentFromZip(file) {
     const zipReader = new ZipReader(new BlobReader(file));
@@ -29,8 +30,9 @@ export async function getContentFromZip(file) {
 
 /**
  * Get file from URL as blob
- * @param {URL} url
- * @returns {Promise}
+ *
+ * @param {URL} url             The file URL
+ * @returns {Promise<Blob>}     A Promise for the file's Blob data
  */
 export async function getFileFromURL(url) {
     return fetch(url).then((res) => res.blob());
@@ -38,8 +40,9 @@ export async function getFileFromURL(url) {
 
 /**
  * Get path, file name and file extension from file path
- * @param {string} filePath
- * @returns {Object}
+ *
+ * @param {string} filePath                                         The complete file path
+ * @returns {{path: string, fileName: string, fileType: string}}    Object containing path, file name und file type
  */
 export function parsePath(filePath) {
     const parts = filePath.split(/\/|\\/g);
@@ -51,10 +54,33 @@ export function parsePath(filePath) {
 }
 
 /**
- * Fetch zip file from URL and return array containing filename, file path, and file content
- * @param {URL} url
- * @returns {Promise}
+ * Fetch zip file from URL and return array containing file name, file type, file path, and file content
+ *
+ * @param {URL} url                                                                         The file URL
+ * @returns {Promise<{path: string, fileName: string, fileType: string, content: string}>}  Promise containing file name, file type, file path, and file content
  */
 export async function getZipContentFromURL(url) {
     return getContentFromZip(await getFileFromURL(url));
+}
+
+/**
+ * Write files from Blob
+ *
+ * @param {Array<{fileName:string, fileType: string, content: Blob}>} files         Array if files that should get saves to a directory
+ * @param {string} savePath                                                         Destination directory for the files
+ * @param {string} extractMessageHeader                                             Caption for the info log in the console
+ */
+export function writeFiles(files, savePath, extractMessageHeader) {
+    postExtractMessage(extractMessageHeader, true);
+    files.forEach((entry) => {
+        const filePath = `${savePath}/${entry.fileName}.${entry.fileType}`;
+        let content = entry.content;
+
+        if (entry.fileType === "json") {
+            content = JSON.stringify(JSON.parse(content), null, 2);
+        }
+
+        writeFileSync(filePath, content);
+        postExtractMessage(`${entry.fileName}.${entry.fileType}`);
+    });
 }
