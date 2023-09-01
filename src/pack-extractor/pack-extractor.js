@@ -393,3 +393,36 @@ function checkLocalizationRelevance(data) {
     }
     return true;
 }
+
+/**
+ * Create an item database consisting of the Foundry compendium links and defined item properies
+ *
+ * @param {{path: string, fileName: string, fileType: string, content: string}} itemPacks   The item packs
+ * @param {{link: string, fields: Array<string>}} packMapping                               Maps pack files to compendium links and defines required property fields for the database
+ * @returns {Object}                                                                        The item database
+ */
+export function buildItemDatabase(itemPacks, packMapping) {
+    const itemDatabase = {};
+
+    // Loop through item packs and build a database of existing items and defined properties
+    itemPacks.forEach((pack) => {
+        // Get the packMapping for the current pack if it exists
+        const currentPackMapping = packMapping[pack.fileName];
+        if (currentPackMapping !== undefined) {
+            // Loop through the pack items and build database
+            JSON.parse(pack.content).forEach((item) => {
+                const itemLink = `Compendium.${currentPackMapping.link}.${item._id}`;
+                const itemFields = {};
+
+                // Get the required item properties for the item database
+                currentPackMapping.fields.forEach((field) => {
+                    if (resolvePath(item, field).exists) {
+                        itemFields[field] = resolveValue(item, field);
+                    }
+                });
+                itemDatabase[itemLink] = itemFields;
+            });
+        }
+    });
+    return itemDatabase;
+}
