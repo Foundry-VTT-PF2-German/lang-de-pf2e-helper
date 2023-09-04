@@ -7,9 +7,10 @@ import { convertArray, sortObject, mergeNestedObjects } from "../util/utilities.
  *
  * @param {Array<Object>} packs An array of compendium packs
  * @param {Object} config       Contains the config for the packGroupList
+ * @param {Object} itemDatabase Contains a database for compendium items to validate nested item entries against
  * @returns {Object}            Extracted data, stored in extractedPackGroups and packGroupListDictionary
  */
-export function extractPackGroupList(packs, config) {
+export function extractPackGroupList(packs, config, itemDatabase = {}) {
     const extractedPackGroupListData = {
         extractedPackGroups: {},
         packGroupListDictionary: {},
@@ -18,7 +19,8 @@ export function extractPackGroupList(packs, config) {
         const extractedPackGroupData = extractPackGroup(
             groupName,
             packs.filter((pack) => packGroupConfig.packNames.includes(pack.fileName)),
-            packGroupConfig.mapping
+            packGroupConfig.mapping,
+            itemDatabase
         );
         extractedPackGroupListData.extractedPackGroups[groupName] = extractedPackGroupData.extractedPacks;
         extractedPackGroupListData.packGroupListDictionary = mergeNestedObjects(
@@ -36,9 +38,10 @@ export function extractPackGroupList(packs, config) {
  * @param {Array<Object>} groupName Name of the pack group
  * @param {Array<Object>} packs     An array of compendium packs
  * @param {Object} mapping          Contains the mapping for the packGroup
+ * @param {Object} itemDatabase     Contains a database for compendium items to validate nested item entries against
  * @returns {Object}                Extracted data, stored in extractedPacks and packGroupDictionary
  */
-export function extractPackGroup(groupName, packs, mapping) {
+export function extractPackGroup(groupName, packs, mapping, itemDatabase = {}) {
     postExtractMessage(groupName, true);
 
     const extractedPackGroupData = {
@@ -47,7 +50,7 @@ export function extractPackGroup(groupName, packs, mapping) {
     };
 
     packs.forEach((pack) => {
-        const extractedPackData = extractPack(pack.fileName, JSON.parse(pack.content), mapping);
+        const extractedPackData = extractPack(pack.fileName, JSON.parse(pack.content), mapping, itemDatabase);
         extractedPackGroupData.extractedPacks[pack.fileName] = extractedPackData.extractedPack;
         extractedPackGroupData.packGroupDictionary = mergeNestedObjects(
             extractedPackGroupData.packGroupDictionary,
@@ -65,9 +68,10 @@ export function extractPackGroup(groupName, packs, mapping) {
  * @param {Array<Object>} packName  Name of the pack
  * @param {Array<Object>} pack      A compendium pack
  * @param {Object} mapping          Contains the mapping for the pack
+ * @param {Object} itemDatabase     Contains a database for compendium items to validate nested item entries against
  * @returns {Object}                Extracted data, stored in extractedPack and packDictionary
  */
-export function extractPack(packName, pack, mapping) {
+export function extractPack(packName, pack, mapping, itemDatabase = {}) {
     postExtractMessage(packName);
 
     const extractedPackData = {
@@ -80,7 +84,7 @@ export function extractPack(packName, pack, mapping) {
     };
 
     pack.forEach((entry) => {
-        const extractedEntryData = extractEntry(entry, mapping);
+        const extractedEntryData = extractEntry(entry, mapping, itemDatabase);
 
         extractedPackData.extractedPack.entries[entry.name] = extractedEntryData.extractedEntry;
 
@@ -104,10 +108,11 @@ export function extractPack(packName, pack, mapping) {
  *
  * @param {Object} entry                                                                Entry with data that should get extracted
  * @param {Object} mapping                                                              Paths to fields that should get extracted
+ * @param {Object} itemDatabase                                                         Contains a database for compendium items to validate nested item entries against
  * @param {boolean|string} nestedEntryType                                              Specifies, if the entry is nested within other entries, e.g. an ector item
  * @returns {{extractedEntry: Object, entryMapping: Object, entryDictionary: Object}}   Extracted data, mapping, and dictionary entries
  */
-export function extractEntry(entry, mapping, nestedEntryType = false) {
+export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = false) {
     const extractedEntryData = {
         extractedEntry: {},
         entryMapping: {},
@@ -173,7 +178,7 @@ export function extractEntry(entry, mapping, nestedEntryType = false) {
         if (!extractOptions.extractValue) continue;
 
         // Don't extract fields that are excluded for actor items
-        if (nestedEntryType === "actorItem" && !extractOptions.extractForActorItem) continue;
+        if (nestedEntryType === "actorItems" && !extractOptions.extractForActorItem) continue;
 
         // Further progress extraction steps if field should get extracted
 
@@ -210,6 +215,7 @@ export function extractEntry(entry, mapping, nestedEntryType = false) {
                 const extractedSubEntry = extractEntry(
                     extractedValue[subEntry],
                     extractOptions.subMapping,
+                    itemDatabase,
                     nestedEntryType
                 );
 
@@ -231,7 +237,13 @@ export function extractEntry(entry, mapping, nestedEntryType = false) {
         // Apply special extraction rules on value level
         // Special extraction for actor items
         if (nestedEntryType === "actorItems") {
-            const formatedActorItem = formatActorItem(extractedValue, mappingKey, entry);
+            const formatedActorItem = formatActorItem(
+                extractedValue,
+                mappingKey,
+                mappingData.path,
+                entry,
+                itemDatabase
+            );
             if (formatedActorItem) {
                 extractedEntryData.extractedEntry[mappingKey] = formatedActorItem;
             }
@@ -257,10 +269,12 @@ export function extractEntry(entry, mapping, nestedEntryType = false) {
  *
  * @param {string} extractedValue   The extracted value that should get formated
  * @param {string} mappingKey       The data field that got its value extracted
+ * @param {string} mappingPath      Path to the data field
  * @param {Object} item             The current actor item
+ * @param {Object} itemDatabase     Contains a database for compendium items to validate nested item entries against
  * @returns {string}                The formated value
  */
-function formatActorItem(extractedValue, mappingKey, item) {
+function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemDatabase = {}) {
     const skills = [
         "Acrobatics",
         "Arcana",
@@ -316,16 +330,21 @@ function formatActorItem(extractedValue, mappingKey, item) {
         }
     }
 
-    // Check if the item is from a compendium
-    if (resolvePath(item, "flags.core.sourceId").exists && item.flags.core.sourceId.includes("Compendium.pf2e")) {
-        // ...Don't extract names for defined item types. Those always use the name from the compendium entry
-        if (mappingKey === "name" && ["ancestry", "background", "class"].includes(item.type)) {
-            return false;
-        }
+    // Check if the item exists in a pf2 system compendium
+    if (resolvePath(item, "flags.core.sourceId").exists && itemDatabase[item.flags.core.sourceId]) {
+        const databaseItem = itemDatabase[item.flags.core.sourceId];
+
         // Don't extract descriptions for defined item types. Those always use the description from the compendium entry
         if (
             mappingKey === "description" &&
             ["ancestry", "background", "class", "feat", "heritage", "spell"].includes(item.type)
+        ) {
+            return false;
+        }
+        if (
+            databaseItem[mappingPath] &&
+            resolvePath(item, mappingPath).exists &&
+            databaseItem[mappingPath] === resolveValue(item, mappingPath)
         ) {
             return false;
         }
@@ -398,7 +417,7 @@ function checkLocalizationRelevance(data) {
  * Create an item database consisting of the Foundry compendium links and defined item properies
  *
  * @param {{path: string, fileName: string, fileType: string, content: string}} itemPacks   The item packs
- * @param {{link: string, fields: Array<string>}} packMapping                               Maps pack files to compendium links and defines required property fields for the database
+ * @param {{fields: Array<string>, packs: Object}} packMapping                              Maps pack files to compendium links and defines required property fields for the database
  * @returns {Object}                                                                        The item database
  */
 export function buildItemDatabase(itemPacks, packMapping) {
@@ -407,20 +426,21 @@ export function buildItemDatabase(itemPacks, packMapping) {
     // Loop through item packs and build a database of existing items and defined properties
     itemPacks.forEach((pack) => {
         // Get the packMapping for the current pack if it exists
-        const currentPackMapping = packMapping[pack.fileName];
-        if (currentPackMapping !== undefined) {
+        if (packMapping.packs[pack.fileName] !== undefined) {
             // Loop through the pack items and build database
             JSON.parse(pack.content).forEach((item) => {
-                const itemLink = `Compendium.${currentPackMapping.link}.${item._id}`;
+                const itemLink = item.flags?.core?.sourceId ?? "";
                 const itemFields = {};
 
                 // Get the required item properties for the item database
-                currentPackMapping.fields.forEach((field) => {
+                packMapping.fields.forEach((field) => {
                     if (resolvePath(item, field).exists) {
                         itemFields[field] = resolveValue(item, field);
                     }
                 });
-                itemDatabase[itemLink] = itemFields;
+                if (itemLink !== "" && Object.keys(itemFields).length > 0) {
+                    itemDatabase[itemLink] = itemFields;
+                }
             });
         }
     });
