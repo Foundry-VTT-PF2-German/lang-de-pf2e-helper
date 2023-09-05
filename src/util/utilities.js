@@ -81,13 +81,54 @@ export function mergeNestedObjects(target, source) {
                 source[key] !== undefined &&
                 !Array.isArray(source[key])
             ) {
-                // Wenn die Eigenschaft ein verschachteltes Objekt ist, rufe die Funktion rekursiv auf
+                // Recursively call the function for nested objects
                 target[key] = mergeNestedObjects(target[key] || {}, source[key]);
             } else {
-                // Füge die Eigenschaft in das Zielobjekt ein
                 target[key] = source[key];
             }
         }
     }
     return sortObject(target, { recursiveSort: true });
+}
+
+/**
+ * Recursively deletes a specified property within a complex object
+ *
+ * @param {Object} obj          The object that should get updated
+ * @param {string} propToDelete The property that should get deleted recursively
+ */
+export function deletePropertyRecursively(obj, propToDelete) {
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            if (typeof obj[key] === "object") {
+                // Recursively call the function for objects and arrays
+                if (Array.isArray(obj[key])) {
+                    for (var i = 0; i < obj[key].length; i++) {
+                        if (typeof obj[key][i] === "object") {
+                            deletePropertyRecursively(obj[key][i], propToDelete);
+                        }
+                    }
+                } else {
+                    deletePropertyRecursively(obj[key], propToDelete);
+                }
+
+                // Delete objects that no longer contain data
+                if (Object.keys(obj[key]).length === 0) {
+                    delete obj[key];
+                }
+            } else if (key === propToDelete) {
+                // Delete the specified property
+                delete obj[key];
+            }
+        }
+        if (Array.isArray(obj)) {
+            // Loop through array elements
+            for (var i = 0; i < obj.length; i++) {
+                if (typeof obj[i] === "object") {
+                    // Recursively call the function for objects and arrays
+                    deletePropertyRecursively(obj[i], propToDelete);
+                }
+            }
+        }
+    }
 }
