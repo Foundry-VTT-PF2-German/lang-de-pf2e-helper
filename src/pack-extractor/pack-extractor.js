@@ -1,5 +1,5 @@
 import { resolvePath, resolveValue } from "path-value";
-import { convertArray, sortObject, mergeNestedObjects } from "../util/utilities.js";
+import { convertArray, deletePropertyRecursively, sortObject, mergeNestedObjects } from "../util/utilities.js";
 
 /**
  * Extract pack data from a list of pack groups
@@ -222,9 +222,21 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
                 // Initialize structure for the current entry in order to receive subentry data and assign subentry data
                 if (Object.keys(extractedSubEntry.extractedEntry).length > 0) {
                     extractedEntryData.extractedEntry[mappingKey] = extractedEntryData.extractedEntry[mappingKey] || {};
-                    Object.assign(extractedEntryData.extractedEntry[mappingKey], {
-                        [subEntryKey]: extractedSubEntry.extractedEntry,
-                    });
+
+                    // For regular subentries add the extracted data
+                    if (!extractedSubEntry.extractedEntry.hasOwnProperty("actorItemId")) {
+                        Object.assign(extractedEntryData.extractedEntry[mappingKey], {
+                            [subEntryKey]: extractedSubEntry.extractedEntry,
+                        });
+
+                        // For actor items check for duplicates and either add the data or create an array in order to keep all duplicates
+                    } else {
+                        itemDuplicates(
+                            extractedEntryData.extractedEntry[mappingKey],
+                            subEntryKey,
+                            extractedSubEntry.extractedEntry
+                        );
+                    }
                 }
 
                 extractedEntryData.entryDictionary = mergeNestedObjects(
@@ -232,6 +244,25 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
                     extractedSubEntry.entryDictionary
                 );
             });
+
+            // Delete all actorItemIds since those were only required to identify multiple item copies
+            deletePropertyRecursively(extractedEntryData.extractedEntry, "actorItemId");
+
+            // During actor item extraction duplicate entries (e.g. two shortswords) were added to the extracted entry as an array with the id as identifier
+            // However, entries that only contain the id with not other extracted data are not needed and have to be deleted
+            if (typeof extractedEntryData.extractedEntry[mappingKey] === "object") {
+                Object.keys(extractedEntryData.extractedEntry[mappingKey]).forEach((subEntry) => {
+                    if (Array.isArray(extractedEntryData.extractedEntry[mappingKey][subEntry])) {
+                        extractedEntryData.extractedEntry[mappingKey][subEntry] = extractedEntryData.extractedEntry[
+                            mappingKey
+                        ][subEntry].filter((data) => Object.keys(data).length > 1);
+                        if (extractedEntryData.extractedEntry[mappingKey][subEntry].length === 0) {
+                            delete extractedEntryData.extractedEntry[mappingKey][subEntry];
+                        }
+                    }
+                });
+            }
+
             continue;
         }
         // Apply special extraction rules on value level
@@ -247,6 +278,9 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
             if (formatedActorItem) {
                 extractedEntryData.extractedEntry[mappingKey] = formatedActorItem;
             }
+
+            // Add the item id in order to identify item duplicates (e.g. two shortswords in the actor's inventory)
+            extractedEntryData.extractedEntry.actorItemId = entry._id;
             continue;
         }
 
@@ -445,4 +479,38 @@ export function buildItemDatabase(itemPacks, packMapping) {
         }
     });
     return itemDatabase;
+}
+
+/**
+ * Checks if an object has the specified property
+ * If no, the property is added with the value
+ * If yes, an array with the old and the new value are created within the property
+ * In addition, the new value gets the item's Id added as an identifier
+ *
+ * @param {Object} obj      The object that should get checked
+ * @param {string} property The property that should get added
+ * @param {Object} value    The value for the property
+ */
+function itemDuplicates(obj, property, value) {
+    if (!obj.hasOwnProperty(property)) {
+        Object.assign(obj, {
+            [property]: value,
+        });
+    } else if (obj.hasOwnProperty(property) && Array.isArray(obj[property])) {
+        obj[property].push({
+            ...value,
+            id: value.actorItemId,
+        });
+    } else {
+        obj[property] = [
+            {
+                ...obj[property],
+                id: obj[property].actorItemId,
+            },
+            {
+                ...value,
+                id: value.actorItemId,
+            },
+        ];
+    }
 }
