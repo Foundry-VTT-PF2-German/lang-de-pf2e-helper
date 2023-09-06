@@ -54,7 +54,7 @@ export function getSourceStrings(projectId, token, sourceFile) {
                 })
                 .then((sourceStringData) => {
                     if (sourceStringData.data.length > 0) {
-                        sourceStrings = sourceStrings.concat(sourceStringData.data);
+                        sourceStrings = sourceStrings.concat(sourceStringData.data.map((entry) => entry.data));
                     } else {
                         arrayHasData = false;
                     }
