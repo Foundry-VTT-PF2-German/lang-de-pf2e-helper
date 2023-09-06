@@ -132,3 +132,60 @@ export function deletePropertyRecursively(obj, propToDelete) {
         }
     }
 }
+
+/**
+ * Converts an Object array in various ways
+ *
+ * @param {Array<Object>} data              An array of ojects that should get converted
+ * @param {boolean|string} conversionType   Convert data to a csv or json string (allowed values: csv, json)?
+ * @param {Array<string>} properties        Defines if only specified properties should get extracted
+ * @returns {*}                             Converted data
+ */
+export function convertData(data, conversionType = false, properties = []) {
+    let convertedData;
+    if (properties.length > 0) {
+        convertedData = data.map(selectProps(properties));
+    } else {
+        convertedData = data;
+    }
+
+    if (conversionType === "csv") {
+        return convertToCSV(convertedData);
+    } else if (conversionType === "json") {
+        return JSON.stringify(convertedData, null, 2);
+    }
+    return convertedData;
+}
+
+/**
+ * Convert array of objects to csv
+ *
+ * @param {Array<Object>} arr   The array of objects that should get converted
+ * @returns {string}            The object converted to a CSV string
+ */
+function convertToCSV(arr) {
+    const array = [Object.keys(arr[0])].concat(arr);
+
+    return array
+        .map((it) => {
+            return Object.values(it).join("|");
+        })
+        .join("\n");
+}
+
+/**
+ * Get specified properties from an object
+ *
+ * @param {Array<string>} props A list of properties that should get extracted
+ * @returns {Function}          The function that extracts the properties from an object
+ */
+export function selectProps(props) {
+    return function (obj) {
+        const newObj = {};
+        props.forEach((name) => {
+            newObj[name] = obj.data[name];
+        });
+
+        return newObj;
+    };
+}
