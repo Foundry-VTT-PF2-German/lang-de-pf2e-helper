@@ -11,7 +11,7 @@ export function getLabels(projectId, token) {
     const { labelsApi } = new crowdin.default({ token: token });
 
     return labelsApi.listLabels(projectId, { limit: 500 }).then((labels) => {
-        return labels.data;
+        return labels.data.map((entry) => entry.data);
     });
 }
 
@@ -26,7 +26,7 @@ export function getSourceFiles(projectId, token) {
     const { sourceFilesApi } = new crowdin.default({ token: token });
 
     return sourceFilesApi.listProjectFiles(projectId, { limit: 500 }).then(async (files) => {
-        return files.data;
+        return files.data.map((entry) => entry.data);
     });
 }
 
