@@ -17,7 +17,8 @@ jobs:
     name: Submodule update
     runs-on: ubuntu-latest
     env:
-      PARENT_REPOSITORY: 'Foundry-VTT-PF2-German/lang-de-pf2e'
+      PARENT_REPOSITORY1: 'Foundry-VTT-PF2-German/lang-de-pf2e'
+      PARENT_REPOSITORY2: 'Foundry-VTT-PF2-German/adventure-extractor'
       CHECKOUT_BRANCH: 'main'
       PR_AGAINST_BRANCH: 'main'
       OWNER: 'Foundry-VTT-PF2-German'
@@ -37,7 +38,17 @@ jobs:
         uses: releasehub-com/github-action-create-pr-parent-submodule@v1
         with:
           github_token: ${{ secrets.SUBMODULE_UPDATE }}
-          parent_repository: ${{ env.PARENT_REPOSITORY }}
+          parent_repository: ${{ env.PARENT_REPOSITORY1 }}
+          checkout_branch: ${{ env.CHECKOUT_BRANCH}}
+          pr_against_branch: ${{ env.PR_AGAINST_BRANCH }}
+          owner: ${{ env.OWNER }}
+      
+      - name: run action
+        id: run_action
+        uses: releasehub-com/github-action-create-pr-parent-submodule@v1
+        with:
+          github_token: ${{ secrets.SUBMODULE_UPDATE }}
+          parent_repository: ${{ env.PARENT_REPOSITORY2 }}
           checkout_branch: ${{ env.CHECKOUT_BRANCH}}
           pr_against_branch: ${{ env.PR_AGAINST_BRANCH }}
           owner: ${{ env.OWNER }}
