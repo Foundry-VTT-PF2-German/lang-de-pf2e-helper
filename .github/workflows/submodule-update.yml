@@ -33,8 +33,7 @@ jobs:
       ####################################
       # Run the action against code base #
       ####################################
-      - name: run action
-        id: run_action
+      - name: Update lang-de-pf2e
         uses: releasehub-com/github-action-create-pr-parent-submodule@v1
         with:
           github_token: ${{ secrets.SUBMODULE_UPDATE }}
@@ -43,8 +42,7 @@ jobs:
           pr_against_branch: ${{ env.PR_AGAINST_BRANCH }}
           owner: ${{ env.OWNER }}
       
-      - name: run action
-        id: run_action
+      - name: Update adventure-extractor
         uses: releasehub-com/github-action-create-pr-parent-submodule@v1
         with:
           github_token: ${{ secrets.SUBMODULE_UPDATE }}
