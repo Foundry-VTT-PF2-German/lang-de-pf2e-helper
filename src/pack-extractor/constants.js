@@ -219,6 +219,10 @@ export const PF2_DEFAULT_MAPPING = {
             extractOptions: { addToDictionary: true, extractValue: false },
         },
     },
+    sounds: {
+        name: { path: "name" },
+        description: { path: "description" },
+    },
     tableResults: {
         text: { path: "text", extractOptions: { addToMapping: false } },
     },
