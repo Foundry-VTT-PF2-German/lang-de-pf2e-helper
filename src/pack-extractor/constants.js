@@ -167,7 +167,7 @@ export const PF2_DEFAULT_MAPPING = {
     },
     rollableTable: {
         name: { path: "name" },
-        description: { path: description },
+        description: { path: "description" },
         results: {
             path: "results",
             converter: "tableResults",
