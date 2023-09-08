@@ -67,6 +67,51 @@ export const PF2_DEFAULT_MAPPING = {
             extractOptions: { subMapping: "item", specialExtraction: "actorItems" },
         },
     },
+    adventure: {
+        name: { path: "name" },
+        caption: { path: "caption" },
+        description: { path: "description" },
+        actors: {
+            path: "actors",
+            converter: "translateAdventureActors",
+            extractOptions: { subMapping: "actor", specialExtraction: "adventureActor" },
+        },
+        items: {
+            path: "items",
+            converter: "translateAdventureItems",
+            extractOptions: { subMapping: "item", specialExtraction: "nameAsKey" },
+        },
+        journal: {
+            path: "journal",
+            converter: "adventureJournals",
+            extractOptions: { subMapping: "journal", specialExtraction: "nameAsKey" },
+        },
+        tables: {
+            path: "tables",
+            converter: "tableResultsCollection",
+            extractOptions: { subMapping: "rollableTable", specialExtraction: "nameAsKey" },
+        },
+        macros: {
+            path: "macros",
+            converter: "adventureMacros",
+            extractOptions: { subMapping: { name: { path: "name" } }, specialExtraction: "nameAsKey" },
+        },
+        playlists: {
+            path: "playlists",
+            converter: "adventurePlaylists",
+            extractOptions: { subMapping: "playlist", specialExtraction: "nameAsKey" },
+        },
+        scenes: {
+            path: "scenes",
+            converter: "adventureScenes",
+            extractOptions: { subMapping: "scene", specialExtraction: "nameAsKey" },
+        },
+        folders: {
+            path: "folders",
+            converter: "nameCollection",
+            extractOptions: { subMapping: { name: { path: "name" } }, specialExtraction: "nameAsKey" },
+        },
+    },
     heightening: {
         duration: {
             path: "duration.value",
@@ -165,6 +210,18 @@ export const PF2_DEFAULT_MAPPING = {
     label: {
         label: { path: "label", extractOptions: { addToMapping: false } },
     },
+    playlist: {
+        name: { path: "name" },
+        description: { path: "description" },
+        sounds: {
+            path: "sounds",
+            converter: "playlistSounds",
+            extractOptions: {
+                subMapping: "sounds",
+                specialExtraction: "nameAsKey",
+            },
+        },
+    },
     rollableTable: {
         name: { path: "name" },
         description: { path: "description" },
@@ -185,6 +242,11 @@ export const PF2_DEFAULT_MAPPING = {
         label: { path: "label", extractOptions: { addToMapping: false } },
         prompt: { path: "prompt", extractOptions: { addToMapping: false } },
         text: { path: "text", extractOptions: { addToMapping: false } },
+    },
+    scene: {
+        name: { path: "name" },
+        drawings: { path: "drawings", extractOptions: { subMapping: "text", specialExtraction: "nameAsKey" } },
+        notes: { path: "notes", extractOptions: { subMapping: "text", specialExtraction: "nameAsKey" } },
     },
     spellVariant: {
         name: {
@@ -221,9 +283,10 @@ export const PF2_DEFAULT_MAPPING = {
     },
     sounds: {
         name: { path: "name" },
-        description: { path: "description" },
+        description: { path: "description", extractOptions: { addToMapping: false } },
     },
     tableResults: {
         text: { path: "text", extractOptions: { addToMapping: false } },
     },
+    text: { text: "text", extractOptions: { addToMapping: false } },
 };
