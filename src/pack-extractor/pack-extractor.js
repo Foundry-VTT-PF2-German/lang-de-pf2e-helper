@@ -207,17 +207,34 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
                     nestedEntryType = "tableResults";
                 }
 
-                // For journal pages, build special key consisting of the sub entry name
-                if (extractOptions.specialExtraction === "journalPages") {
+                // Especially for arrays, there might be the need for using the name entry as key instead of the array index
+                // Also the case for actors within adventures
+                if (["nameAsKey", "adventureActor"].includes(extractOptions.specialExtraction)) {
                     subEntryKey = extractedValue[subEntry].name;
                 }
 
-                const extractedSubEntry = extractEntry(
-                    extractedValue[subEntry],
-                    extractOptions.subMapping,
-                    itemDatabase,
-                    nestedEntryType
-                );
+                // Initialize object that contains extrated values
+                let extractedSubEntry = {
+                    extractedEntry: {},
+                    entryMapping: {},
+                    entryDictionary: {},
+                };
+
+                // For actors within adventures, only extract non compendium actors
+                if (
+                    !(
+                        extractOptions.specialExtraction === "adventureActor" &&
+                        resolvePath(extractedValue[subEntry], "flags.core.sourceId").exists &&
+                        extractedValue[subEntry].flags.core.sourceId.includes("Compendium.pf2e.")
+                    )
+                ) {
+                    extractedSubEntry = extractEntry(
+                        extractedValue[subEntry],
+                        extractOptions.subMapping,
+                        itemDatabase,
+                        nestedEntryType
+                    );
+                }
 
                 // Initialize structure for the current entry in order to receive subentry data and assign subentry data
                 if (Object.keys(extractedSubEntry.extractedEntry).length > 0) {
