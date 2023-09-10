@@ -204,13 +204,19 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
                 // For table results, build special key consisting of the roll ranges
                 if (extractOptions.specialExtraction === "tableResults") {
                     subEntryKey = `${extractedValue[subEntry].range[0]}-${extractedValue[subEntry].range[1]}`;
-                    nestedEntryType = "tableResults";
+                    nestedEntryType = "plainData";
                 }
 
-                // Especially for arrays, there might be the need for using the name entry as key instead of the array index
+                // For arrays, there might be the need for using the name entry as key instead of the array index
                 // Also the case for actors within adventures
-                if (["nameAsKey", "adventureActor"].includes(extractOptions.specialExtraction)) {
+                if (["adventureActor", "nameAsKey"].includes(extractOptions.specialExtraction)) {
                     subEntryKey = extractedValue[subEntry].name;
+                }
+
+                // For plain data collections (e.g. notes on scenes) use the entry as key
+                if (["nameCollection", "textCollection"].includes(extractOptions.specialExtraction)) {
+                    subEntryKey = extractedValue[subEntry][extractOptions.specialExtraction.replace("Collection", "")];
+                    nestedEntryType = "plainData";
                 }
 
                 // Initialize object that contains extrated values
@@ -301,9 +307,9 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
             continue;
         }
 
-        // For tableResults, return the plain value instead of an object using the mapping key
+        // For plain data collections, return the plain value instead of an object using the mapping key
         // This is neccessary due to the required babele data structure for rollable tables
-        if (nestedEntryType === "tableResults") {
+        if (nestedEntryType === "plainData") {
             extractedEntryData.extractedEntry = extractedValue;
             continue;
         }
