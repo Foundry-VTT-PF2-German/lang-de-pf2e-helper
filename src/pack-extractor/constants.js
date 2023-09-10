@@ -109,7 +109,7 @@ export const PF2_DEFAULT_MAPPING = {
         folders: {
             path: "folders",
             converter: "nameCollection",
-            extractOptions: { subMapping: { name: { path: "name" } }, specialExtraction: "nameAsKey" },
+            extractOptions: { subMapping: { name: { path: "name" } }, specialExtraction: "nameCollection" },
         },
     },
     heightening: {
@@ -245,8 +245,8 @@ export const PF2_DEFAULT_MAPPING = {
     },
     scene: {
         name: { path: "name" },
-        drawings: { path: "drawings", extractOptions: { subMapping: "text", specialExtraction: "nameAsKey" } },
-        notes: { path: "notes", extractOptions: { subMapping: "text", specialExtraction: "nameAsKey" } },
+        drawings: { path: "drawings", extractOptions: { subMapping: "text", specialExtraction: "textCollection" } },
+        notes: { path: "notes", extractOptions: { subMapping: "text", specialExtraction: "textCollection" } },
     },
     spellVariant: {
         name: {
