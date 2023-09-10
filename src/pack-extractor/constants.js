@@ -288,5 +288,7 @@ export const PF2_DEFAULT_MAPPING = {
     tableResults: {
         text: { path: "text", extractOptions: { addToMapping: false } },
     },
-    text: { text: "text", extractOptions: { addToMapping: false } },
+    text: {
+        text: { path: "text", extractOptions: { addToMapping: false } },
+    },
 };
