@@ -112,6 +112,21 @@ export const PF2_DEFAULT_MAPPING = {
             extractOptions: { subMapping: { name: { path: "name" } }, specialExtraction: "nameCollection" },
         },
     },
+    adventureJournal: {
+        name: { path: "name" },
+        pages: {
+            path: "pages",
+            converter: "pages",
+            extractOptions: {
+                subMapping: "adventureJournalPages",
+                specialExtraction: "nameAsKey",
+            },
+        },
+    },
+    adventureJournalPages: {
+        name: { path: "name", extractOptions: { addToMapping: false } },
+        id: { path: "_id", extractOptions: { addToMapping: false } }
+    },
     heightening: {
         duration: {
             path: "duration.value",
