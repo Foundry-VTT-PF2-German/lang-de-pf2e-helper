@@ -107,7 +107,6 @@ export function deleteFolderRecursive(folderPath) {
 
         // Delete the empty directory
         rmdirSync(folderPath);
-        console.log("Delete directory:", folderPath);
     }
 }
 
