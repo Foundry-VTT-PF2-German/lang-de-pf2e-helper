@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "fs";
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, rmdirSync, unlinkSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
 import { postExtractMessage } from "../../src/pack-extractor/pack-extractor.js";
@@ -106,12 +106,12 @@ export function deleteFolderRecursive(folderPath) {
         });
 
         // Delete the empty directory
-        fs.rmdirSync(folderPath);
-        console.log("Delete directory:", folderPath);
+        rmdirSync(folderPath);
     }
 }
 
 /**
+ * Saves a file to a specified location, creating all required subdirectories
  *
  * @param {string} filePath     Path to the file including the file name
  * @param {string} fileContent  File content
@@ -125,4 +125,31 @@ export function saveFileWithDirectories(filePath, fileContent) {
 
     // Write file
     writeFileSync(filePath, fileContent);
+}
+
+/**
+ * Copies alls subdirectories and files from the source to the target directory
+ *
+ * @param {string} sourceDir Path to the source directory
+ * @param {string} targetDir Path to the target directory
+ */
+export function copyDirectory(sourceDir, targetDir) {
+    if (!existsSync(targetDir)) {
+        mkdirSync(targetDir, { recursive: true });
+    }
+
+    const files = readdirSync(sourceDir);
+
+    for (const file of files) {
+        const sourceFilePath = join(sourceDir, file);
+        const targetFilePath = join(targetDir, file);
+
+        if (lstatSync(sourceFilePath).isDirectory()) {
+            // If subdirectory, copy recursively
+            copyDirectory(sourceFilePath, targetFilePath);
+        } else {
+            // Copy files
+            copyFileSync(sourceFilePath, targetFilePath);
+        }
+    }
 }
