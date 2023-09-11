@@ -1,4 +1,5 @@
-import { writeFileSync } from "fs";
+import { existsSync, lstatSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
 import { postExtractMessage } from "../../src/pack-extractor/pack-extractor.js";
 
@@ -67,11 +68,11 @@ export async function getZipContentFromURL(url) {
 /**
  * Write files from Blob
  *
- * @param {Array<{fileName:string, fileType: string, content: Blob}>} files         Array if files that should get saves to a directory
+ * @param {Array<{fileName:string, fileType: string, content: Blob}>} files         Array of files that should get saves to a directory
  * @param {string} savePath                                                         Destination directory for the files
  * @param {string} extractMessageHeader                                             Caption for the info log in the console
  */
-export function writeFiles(files, savePath, extractMessageHeader) {
+export function writeFilesFromBlob(files, savePath, extractMessageHeader) {
     postExtractMessage(extractMessageHeader, true);
     files.forEach((entry) => {
         const filePath = `${savePath}/${entry.fileName}.${entry.fileType}`;
@@ -84,4 +85,44 @@ export function writeFiles(files, savePath, extractMessageHeader) {
         writeFileSync(filePath, content);
         postExtractMessage(`${entry.fileName}.${entry.fileType}`);
     });
+}
+
+/**
+ * Delete a directory, including all files and subdirectories
+ *
+ * @param {string} folderPath Path to the directory that should get deleted
+ */
+export function deleteFolderRecursive(folderPath) {
+    if (existsSync(folderPath)) {
+        readdirSync(folderPath).forEach((file) => {
+            const curPath = join(folderPath, file);
+            if (lstatSync(curPath).isDirectory()) {
+                // If subdirectory, delete recusively
+                deleteFolderRecursive(curPath);
+            } else {
+                // Delete files
+                unlinkSync(curPath);
+            }
+        });
+
+        // Delete the empty directory
+        fs.rmdirSync(folderPath);
+        console.log("Delete directory:", folderPath);
+    }
+}
+
+/**
+ *
+ * @param {string} filePath     Path to the file including the file name
+ * @param {string} fileContent  File content
+ */
+export function saveFileWithDirectories(filePath, fileContent) {
+    // Create required directories recursively
+    const directoryPath = dirname(filePath);
+    if (!existsSync(directoryPath)) {
+        mkdirSync(directoryPath, { recursive: true });
+    }
+
+    // Write file
+    writeFileSync(filePath, fileContent);
 }
