@@ -189,3 +189,19 @@ export function selectProps(props) {
         return newObj;
     };
 }
+
+/**
+ * Sluggify a string
+ *
+ * @param {string} label    The string
+ * @returns {string}        The sluggified string
+ */
+export function sluggify(label) {
+    return label
+        .replace(/([a-z])([A-Z])\B/g, "$1-$2")
+        .toLowerCase()
+        .replace(/'/g, "")
+        .replace(/[^a-z0-9]+/gi, " ")
+        .trim()
+        .replace(/[-\s]+/g, "-");
+}
