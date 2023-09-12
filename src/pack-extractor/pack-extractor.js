@@ -121,15 +121,16 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
 
     // Initialize default extract options for entry fields
     const defaultExtractOptions = {
-        addToDictionary: false,
-        addToMapping: true,
-        alternateMappingKey: false,
-        alwaysAddMapping: false,
-        convertArray: true,
-        extractForActorItem: true,
-        extractValue: true,
-        specialExtraction: false,
-        subMapping: false,
+        addToDictionary: false, // Defines if values should get extracted to a dictionary
+        addToMapping: true, // Defines if keys should get added to mapping if data is found
+        alternateMappingKey: false, // Defines if a different key should get used for the mapping
+        alwaysAddMapping: false, // Defines if mapping should always get added, even if no value is found
+        convertArray: true, // Defines if an array should get converted to an object list
+        extractForActorItem: true, // Defines if value should get extracted for items within actors
+        extractValue: true, // Defines if value should get extracted
+        specialExtraction: false, // Defines special extractions: actorItems, nameAsKey, nameCollection, tableResults, textCollection
+        subMapping: false, // Defines if a submapping exists (for nested entries like rules or actor items)
+        subMappingAsMapping: false, // Defines if the mapping of the sub-entry should get used as mapping
     };
 
     // Loop through mappings for the entry, extract matching data
@@ -162,7 +163,7 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
         // Further progress extraction steps if field is relevant for localization
 
         // Add mapping
-        if (extractOptions.addToMapping && !extractOptions.alwaysAddMapping) {
+        if (extractOptions.addToMapping && !extractOptions.alwaysAddMapping && !extractOptions.subMappingAsMapping) {
             addMapping(extractedEntryData.entryMapping, { [mappingKey]: mappingData.path }, hasConverter);
         }
 
@@ -260,6 +261,11 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
                             extractedSubEntry.extractedEntry
                         );
                     }
+                }
+
+                // If the sub-entries' mapping should get used instead of the entry mapping, use it
+                if (extractOptions.subMappingAsMapping && Object.keys(extractedSubEntry.entryMapping).length > 0) {
+                    extractedEntryData.entryMapping[mappingKey] = extractedSubEntry.entryMapping;
                 }
 
                 extractedEntryData.entryDictionary = mergeNestedObjects(
