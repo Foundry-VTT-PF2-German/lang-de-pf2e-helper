@@ -265,7 +265,11 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
 
                 // If the sub-entries' mapping should get used instead of the entry mapping, use it
                 if (extractOptions.subMappingAsMapping && Object.keys(extractedSubEntry.entryMapping).length > 0) {
-                    extractedEntryData.entryMapping[mappingKey] = extractedSubEntry.entryMapping;
+                    extractedEntryData.entryMapping[mappingKey] = extractedEntryData.entryMapping[mappingKey] || {};
+                    extractedEntryData.entryMapping[mappingKey] = mergeNestedObjects(
+                        extractedEntryData.entryMapping[mappingKey],
+                        extractedSubEntry.entryMapping
+                    );
                 }
 
                 extractedEntryData.entryDictionary = mergeNestedObjects(

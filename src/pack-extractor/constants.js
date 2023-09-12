@@ -260,8 +260,16 @@ export const PF2_DEFAULT_MAPPING = {
     },
     scene: {
         name: { path: "name" },
-        drawings: { path: "drawings", extractOptions: { subMapping: "text", specialExtraction: "textCollection" } },
-        notes: { path: "notes", extractOptions: { subMapping: "text", specialExtraction: "textCollection" } },
+        drawings: {
+            path: "drawings",
+            converter: "textCollection",
+            extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
+        },
+        notes: {
+            path: "notes",
+            converter: "textCollection",
+            extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
+        },
     },
     spellVariant: {
         name: {
