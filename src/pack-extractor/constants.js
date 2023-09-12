@@ -74,7 +74,7 @@ export const PF2_DEFAULT_MAPPING = {
         actors: {
             path: "actors",
             converter: "translateAdventureActors",
-            extractOptions: { subMapping: "actor", specialExtraction: "adventureActor" },
+            extractOptions: { subMapping: "actor", specialExtraction: "adventureActor", subMappingAsMapping: true },
         },
         items: {
             path: "items",
@@ -104,7 +104,7 @@ export const PF2_DEFAULT_MAPPING = {
         scenes: {
             path: "scenes",
             converter: "adventureScenes",
-            extractOptions: { subMapping: "scene", specialExtraction: "nameAsKey" },
+            extractOptions: { subMapping: "scene", specialExtraction: "nameAsKey", subMappingAsMapping: true },
         },
         folders: {
             path: "folders",
@@ -125,7 +125,7 @@ export const PF2_DEFAULT_MAPPING = {
     },
     adventureJournalPages: {
         name: { path: "name", extractOptions: { addToMapping: false } },
-        id: { path: "_id", extractOptions: { addToMapping: false } }
+        id: { path: "_id", extractOptions: { addToMapping: false } },
     },
     heightening: {
         duration: {
