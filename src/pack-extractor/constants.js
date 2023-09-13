@@ -3,13 +3,14 @@ export const PF2_DEFAULT_MAPPING = {
         name: {
             path: "name",
             converter: "translateDualLanguage",
+            extractOptions: { extractOnAdventureActor: true },
         },
-        acDetails: { path: "system.attributes.ac.details" },
+        acDetails: { path: "system.attributes.ac.details", extractOptions: { extractOnAdventureActor: true } },
         appearance: {
             path: "system.details.biography.appearance",
             converter: "translateActorDescription",
         },
-        blurb: { path: "system.details.blurb" },
+        blurb: { path: "system.details.blurb", extractOptions: { extractOnAdventureActor: true } },
         crew: { path: "system.details.crew" },
         description: {
             path: "system.details.description",
@@ -59,11 +60,12 @@ export const PF2_DEFAULT_MAPPING = {
         tokenName: {
             path: "prototypeToken.name",
             converter: "translateTokenName",
-            extractOptions: { alwaysAddMapping: true },
+            extractOptions: { alwaysAddMapping: true, extractOnAdventureActor: true },
         },
         items: {
             path: "items",
             converter: "translateActorItems",
+            adventureConverter: "translateAdventureActorItems",
             extractOptions: { subMapping: "item", specialExtraction: "actorItems" },
         },
     },
@@ -74,7 +76,7 @@ export const PF2_DEFAULT_MAPPING = {
         actors: {
             path: "actors",
             converter: "translateAdventureActors",
-            extractOptions: { subMapping: "actor", specialExtraction: "adventureActor", subMappingAsMapping: true },
+            extractOptions: { subMapping: "actor", specialExtraction: "adventureActors", subMappingAsMapping: true },
         },
         items: {
             path: "items",

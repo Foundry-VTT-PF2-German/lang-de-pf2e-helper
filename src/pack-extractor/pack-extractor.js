@@ -112,7 +112,7 @@ export function extractPack(packName, pack, mapping, itemDatabase = {}) {
  * @param {boolean|string} nestedEntryType                                              Specifies, if the entry is nested within other entries, e.g. an ector item
  * @returns {{extractedEntry: Object, entryMapping: Object, entryDictionary: Object}}   Extracted data, mapping, and dictionary entries
  */
-export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = false) {
+export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType = false) {
     const extractedEntryData = {
         extractedEntry: {},
         entryMapping: {},
@@ -128,9 +128,10 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
         convertArray: true, // Defines if an array should get converted to an object list
         extractForActorItem: true, // Defines if value should get extracted for items within actors
         extractValue: true, // Defines if value should get extracted
-        specialExtraction: false, // Defines special extractions: actorItems, nameAsKey, nameCollection, tableResults, textCollection
+        specialExtraction: false, // Defines special extractions: actorItems, nameAsKey, nameCollection, tableResults, textCollection, adventureActor
         subMapping: false, // Defines if a submapping exists (for nested entries like rules or actor items)
         subMappingAsMapping: false, // Defines if the mapping of the sub-entry should get used as mapping
+        extractOnAdventureActor: false, // For special extraction adventureActor, only data for non-compendium actors gets extracted by default. Set to true in order to extract the data
     };
 
     // Loop through mappings for the entry, extract matching data
@@ -144,7 +145,17 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
         mappingKey = extractOptions.alternateMappingKey ? extractOptions.alternateMappingKey : mappingKey;
 
         // Check if the current field uses a converter
-        const hasConverter = mappingData.converter ? mappingData.converter : false;
+        let hasConverter = false;
+        if (mappingData.converter) hasConverter = mappingData.converter;
+
+        // Check for special adventure convertes that should get used instead of the regular converters
+        if (
+            typeof nestedEntryType === "string" &&
+            nestedEntryType.startsWith("adventure") &&
+            mappingData.adventureConverter
+        ) {
+            hasConverter = mappingData.adventureConverter;
+        }
 
         // Check if the current field exists in the compendium entry and extract its value
         let extractedValue = resolvePath(entry, mappingData.path).exists
@@ -162,6 +173,15 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
 
         // Further progress extraction steps if field is relevant for localization
 
+        // Don't extract fields that are excluded for actor items
+        if (["actorItems", "adventureActorItems"].includes(nestedEntryType) && !extractOptions.extractForActorItem)
+            continue;
+
+        // Don't extract fields on compendium actors within adventures that don't specifically define extraction
+        if (nestedEntryType === "adventureCompendiumActors" && !extractOptions.extractOnAdventureActor) {
+            continue;
+        }
+
         // Add mapping
         if (extractOptions.addToMapping && !extractOptions.alwaysAddMapping && !extractOptions.subMappingAsMapping) {
             addMapping(extractedEntryData.entryMapping, { [mappingKey]: mappingData.path }, hasConverter);
@@ -178,9 +198,6 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
         // Skip further steps if not
         if (!extractOptions.extractValue) continue;
 
-        // Don't extract fields that are excluded for actor items
-        if (nestedEntryType === "actorItems" && !extractOptions.extractForActorItem) continue;
-
         // Further progress extraction steps if field should get extracted
 
         // If extracted value is an array, convert it to an object list
@@ -192,6 +209,21 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
             // Loop through list of sub entries and extract their data
             Object.keys(extractedValue).forEach((subEntry) => {
                 let subEntryKey = subEntry;
+                let nestedEntry = false;
+
+                // For adventure actors, use the name entry as key instead of the array index
+                // Also indicate the type of adventure actor for the nested entry extraction
+                if (extractOptions.specialExtraction === "adventureActors") {
+                    subEntryKey = extractedValue[subEntry].name;
+                    nestedEntry = "adventureActors";
+                    if (
+                        resolvePath(extractedValue[subEntry], "flags.core.sourceId").exists &&
+                        extractedValue[subEntry].flags.core.sourceId.includes("Compendium.pf2e.")
+                    ) {
+                        nestedEntry = "adventureCompendiumActors";
+                    }
+                }
+
                 // For actor items, build special key indicate the subentry is an actor item to start a modified extraction
                 if (extractOptions.specialExtraction === "actorItems") {
                     subEntryKey = `${extractedValue[subEntry].type}->`;
@@ -199,25 +231,32 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
                         subEntryKey = `strike-${extractedValue[subEntry].system.weaponType.value}->`;
                     }
                     subEntryKey = subEntryKey.concat(`${extractedValue[subEntry].name}`);
-                    nestedEntryType = "actorItems";
+                    nestedEntry = "actorItems";
+                }
+
+                // For items within adventure actors, a special kind of extraction will be done
+                if (
+                    ["adventureActors", "adventureCompendiumActors"].includes(nestedEntryType) &&
+                    extractOptions.specialExtraction === "actorItems"
+                ) {
+                    nestedEntry = "adventureActorItems";
                 }
 
                 // For table results, build special key consisting of the roll ranges
                 if (extractOptions.specialExtraction === "tableResults") {
                     subEntryKey = `${extractedValue[subEntry].range[0]}-${extractedValue[subEntry].range[1]}`;
-                    nestedEntryType = "plainData";
+                    nestedEntry = "plainData";
                 }
 
                 // For arrays, there might be the need for using the name entry as key instead of the array index
-                // Also the case for actors within adventures
-                if (["adventureActor", "nameAsKey"].includes(extractOptions.specialExtraction)) {
+                if (extractOptions.specialExtraction === "nameAsKey") {
                     subEntryKey = extractedValue[subEntry].name;
                 }
 
                 // For plain data collections (e.g. notes on scenes) use the entry as key
                 if (["nameCollection", "textCollection"].includes(extractOptions.specialExtraction)) {
                     subEntryKey = extractedValue[subEntry][extractOptions.specialExtraction.replace("Collection", "")];
-                    nestedEntryType = "plainData";
+                    nestedEntry = "plainData";
                 }
 
                 // Initialize object that contains extrated values
@@ -227,21 +266,12 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
                     entryDictionary: {},
                 };
 
-                // For actors within adventures, only extract non compendium actors
-                if (
-                    !(
-                        extractOptions.specialExtraction === "adventureActor" &&
-                        resolvePath(extractedValue[subEntry], "flags.core.sourceId").exists &&
-                        extractedValue[subEntry].flags.core.sourceId.includes("Compendium.pf2e.")
-                    )
-                ) {
-                    extractedSubEntry = extractEntry(
-                        extractedValue[subEntry],
-                        extractOptions.subMapping,
-                        itemDatabase,
-                        nestedEntryType
-                    );
-                }
+                extractedSubEntry = extractEntry(
+                    extractedValue[subEntry],
+                    extractOptions.subMapping,
+                    itemDatabase,
+                    nestedEntry
+                );
 
                 // Initialize structure for the current entry in order to receive subentry data and assign subentry data
                 if (Object.keys(extractedSubEntry.extractedEntry).length > 0) {
@@ -300,13 +330,14 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
         }
         // Apply special extraction rules on value level
         // Special extraction for actor items
-        if (nestedEntryType === "actorItems") {
+        if (["actorItems", "adventureActorItems"].includes(nestedEntryType)) {
             const formatedActorItem = formatActorItem(
                 extractedValue,
                 mappingKey,
                 mappingData.path,
                 entry,
-                itemDatabase
+                itemDatabase,
+                nestedEntryType
             );
             if (formatedActorItem) {
                 extractedEntryData.extractedEntry[mappingKey] = formatedActorItem;
@@ -339,9 +370,10 @@ export function extractEntry(entry, mapping, itemDatabase, nestedEntryType = fal
  * @param {string} mappingPath      Path to the data field
  * @param {Object} item             The current actor item
  * @param {Object} itemDatabase     Contains a database for compendium items to validate nested item entries against
+ * @param {string} nestedEntryType  Defines if the item if from an actorItem or an adventureActorItem
  * @returns {string}                The formated value
  */
-function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemDatabase = {}) {
+function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemDatabase = {}, nestedEntryType) {
     const skills = [
         "Acrobatics",
         "Arcana",
@@ -360,6 +392,8 @@ function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemData
         "Survival",
         "Thievery",
     ];
+
+    // TODO --> Unterscheidung actorItem und adventureActorItem einbauen (sofern notwendig, andernfalls Parameter wieder entfernen)
 
     // Do some special treatment first...
 
