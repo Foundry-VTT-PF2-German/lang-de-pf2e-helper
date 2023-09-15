@@ -154,7 +154,7 @@ export const PF2_DEFAULT_MAPPING = {
         },
         badges: {
             path: "system.badge.labels",
-            extractOptions: { extractForActorItem: false, convertArray: false },
+            extractOptions: { extractOnActorItem: false, convertArray: false },
         },
         cost: { path: "system.cost.value" },
         description: { path: "system.description.value" },
@@ -167,12 +167,12 @@ export const PF2_DEFAULT_MAPPING = {
         heightening: {
             path: "system.heightening.levels",
             converter: "translateHeightening",
-            extractOptions: { extractForActorItem: false, subMapping: "heightening" },
+            extractOptions: { extractOnActorItem: false, subMapping: "heightening" },
         },
         materials: { path: "system.materials.value" },
         prerequisites: {
             path: "system.prerequisites.value",
-            extractOptions: { extractForActorItem: false, convertArray: false },
+            extractOptions: { extractOnActorItem: false, convertArray: false },
         },
         primarycheck: { path: "system.primarycheck.value" },
         range: {
@@ -199,7 +199,7 @@ export const PF2_DEFAULT_MAPPING = {
         spellVariants: {
             path: "system.overlays",
             converter: "translateSpellVariant",
-            extractOptions: { extractForActorItem: false, subMapping: "spellVariant" },
+            extractOptions: { extractOnActorItem: false, subMapping: "spellVariant" },
         },
         target: { path: "system.target.value" },
         time: {
@@ -207,7 +207,7 @@ export const PF2_DEFAULT_MAPPING = {
             converter: "translateTime",
             extractOptions: { addToDictionary: true, extractValue: false },
         },
-        trainedLore: { path: "system.trainedLore", extractOptions: { extractForActorItem: false } },
+        trainedLore: { path: "system.trainedLore", extractOptions: { extractOnActorItem: false } },
     },
     journal: {
         name: { path: "name" },
@@ -288,7 +288,7 @@ export const PF2_DEFAULT_MAPPING = {
         heightening: {
             path: "system.heightening.levels",
             converter: "translateHeightening",
-            extractOptions: { extractForActorItem: false, subMapping: "heightening" },
+            extractOptions: { extractOnActorItem: false, subMapping: "heightening" },
         },
         materials: { path: "system.materials.value" },
         primarycheck: { path: "system.primarycheck.value" },
