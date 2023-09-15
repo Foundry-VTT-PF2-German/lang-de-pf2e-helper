@@ -123,15 +123,15 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
     const defaultExtractOptions = {
         addToDictionary: false, // Defines if values should get extracted to a dictionary
         addToMapping: true, // Defines if keys should get added to mapping if data is found
+        convertArray: true, // Defines if an array should get converted to an object list
+        specialExtraction: false, // Defines special extractions: actorItems, nameAsKey, nameCollection, tableResults, textCollection, adventureActor
+        extractValue: true, // Defines if value should get extracted
+        extractOnActorItem: true, // Defines if value should get extracted for items within actors
+        extractOnAdventureActor: false, // For special extraction adventureActor, only data for non-compendium actors gets extracted by default. Set to true in order to extract the data
         alternateMappingKey: false, // Defines if a different key should get used for the mapping
         alwaysAddMapping: false, // Defines if mapping should always get added, even if no value is found
-        convertArray: true, // Defines if an array should get converted to an object list
-        extractForActorItem: true, // Defines if value should get extracted for items within actors
-        extractValue: true, // Defines if value should get extracted
-        specialExtraction: false, // Defines special extractions: actorItems, nameAsKey, nameCollection, tableResults, textCollection, adventureActor
         subMapping: false, // Defines if a submapping exists (for nested entries like rules or actor items)
         subMappingAsMapping: false, // Defines if the mapping of the sub-entry should get used as mapping
-        extractOnAdventureActor: false, // For special extraction adventureActor, only data for non-compendium actors gets extracted by default. Set to true in order to extract the data
     };
 
     // Loop through mappings for the entry, extract matching data
@@ -141,7 +141,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
             ? { ...defaultExtractOptions, ...mappingData.extractOptions }
             : defaultExtractOptions;
 
-        // Check is alternate mapping key should be used
+        // Check if alternate mapping key should be used
         mappingKey = extractOptions.alternateMappingKey ? extractOptions.alternateMappingKey : mappingKey;
 
         // Check if the current field uses a converter
@@ -174,7 +174,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
         // Further progress extraction steps if field is relevant for localization
 
         // Don't extract fields that are excluded for actor items
-        if (["actorItems", "adventureActorItems"].includes(nestedEntryType) && !extractOptions.extractForActorItem)
+        if (["actorItems", "adventureActorItems"].includes(nestedEntryType) && !extractOptions.extractOnActorItem)
             continue;
 
         // Don't extract fields on compendium actors within adventures that don't specifically define extraction
@@ -370,7 +370,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
  * @param {string} mappingPath      Path to the data field
  * @param {Object} item             The current actor item
  * @param {Object} itemDatabase     Contains a database for compendium items to validate nested item entries against
- * @param {string} nestedEntryType  Defines if the item if from an actorItem or an adventureActorItem
+ * @param {string} nestedEntryType  Defines if the item is an actorItem or an adventureActorItem
  * @returns {string}                The formated value
  */
 function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemDatabase = {}, nestedEntryType) {
@@ -392,8 +392,6 @@ function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemData
         "Survival",
         "Thievery",
     ];
-
-    // TODO --> Unterscheidung actorItem und adventureActorItem einbauen (sofern notwendig, andernfalls Parameter wieder entfernen)
 
     // Do some special treatment first...
 
@@ -435,19 +433,24 @@ function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemData
     if (resolvePath(item, "flags.core.sourceId").exists && itemDatabase[item.flags.core.sourceId]) {
         const databaseItem = itemDatabase[item.flags.core.sourceId];
 
-        // Don't extract descriptions for defined item types. Those always use the description from the compendium entry
-        if (
-            mappingKey === "description" &&
-            ["ancestry", "background", "class", "feat", "heritage", "spell"].includes(item.type)
-        ) {
-            return false;
-        }
-        if (
-            databaseItem[mappingPath] &&
-            resolvePath(item, mappingPath).exists &&
-            databaseItem[mappingPath] === resolveValue(item, mappingPath)
-        ) {
-            return false;
+        // For regular actor items, reduce localization load since items are pulled and merged from a compendium during translation.
+        // For adventure actor items however, items may have gotten modified and mustn't get merged with the compendium version.
+        // As a result, adventure actor items need to get all relevant fields extracted
+        if (nestedEntryType === "actorItems") {
+            // Don't extract descriptions for defined item types. Those always use the description from the compendium entry
+            if (
+                mappingKey === "description" &&
+                ["ancestry", "background", "class", "feat", "heritage", "spell"].includes(item.type)
+            ) {
+                return false;
+            }
+            if (
+                databaseItem[mappingPath] &&
+                resolvePath(item, mappingPath).exists &&
+                databaseItem[mappingPath] === resolveValue(item, mappingPath)
+            ) {
+                return false;
+            }
         }
         // Add note for description and name to use <Compendium> as a translation if the value should be taken from the compendium
         if (["description", "name"].includes(mappingKey)) {
