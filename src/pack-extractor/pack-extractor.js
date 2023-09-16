@@ -399,18 +399,31 @@ function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemData
     if (item.type === "lore" && mappingKey === "name" && skills.includes(item.name)) {
         return false;
     }
-    // ... for weapons, include runes into the name
-    if (item.type === "weapon" && mappingKey === "name" && !resolvePath(item, "system.specific.value").exists) {
+    // ... for armor and weapons, include runes into the name
+    if (
+        ["armor", "weapon"].includes(item.type) &&
+        mappingKey === "name" &&
+        !resolvePath(item, "system.specific.value").exists
+    ) {
         const nameAdditions = [];
         // Potency rune
         if (resolvePath(item, "system.potencyRune.value").exists && item.system.potencyRune.value > 0) {
             nameAdditions.push("+".concat(item.system.potencyRune.value));
         }
 
-        // Other runes and material
+        // Material
+        if (resolvePath(item, "system.material.type").exists && item.system.material.type !== null) {
+            if (resolvePath(item, "system.material.grade").exists) {
+                nameAdditions.push(`${item.system.material.type}[${item.system.material.grade}]`);
+            } else {
+                nameAdditions.push(item.system.material.type);
+            }
+        }
+
+        // Other runes
         [
+            "system.resiliencyRune.value",
             "system.strikingRune.value",
-            "system.preciousMaterial.value",
             "system.propertyRune1.value",
             "system.propertyRune2.value",
             "system.propertyRune3.value",
