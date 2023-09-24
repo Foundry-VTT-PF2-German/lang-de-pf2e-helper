@@ -92,6 +92,29 @@ export function mergeNestedObjects(target, source) {
 }
 
 /**
+ * Takes a full object path to a property and deletes it from the object if it exists
+ *
+ * @param {Object} obj  Object containing the property
+ * @param {string} path Path to the property that should get deleted
+ */
+export function deletePropertyByPath(obj, path) {
+    const properties = path.split(".");
+    let currentObj = obj;
+
+    for (let i = 0; i < properties.length - 1; i++) {
+        const property = properties[i];
+        currentObj = currentObj[property];
+
+        if (currentObj === undefined) {
+            return;
+        }
+    }
+
+    const lastProperty = properties[properties.length - 1];
+    delete currentObj[lastProperty];
+}
+
+/**
  * Recursively deletes a specified property within a complex object
  *
  * @param {Object} obj          The object that should get updated
