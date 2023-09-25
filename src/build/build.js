@@ -10,8 +10,7 @@ import {
     createWriteStream,
 } from "fs";
 import { readJSONFile, CONFIG_FILE } from "./config_helper.js";
-
-const archiver = require('archiver');
+import archiver from "archiver";
 
 export const build = (paths, targetFolder, extraConverters) => {
     const configData = readJSONFile(CONFIG_FILE);
@@ -69,7 +68,18 @@ export const build = (paths, targetFolder, extraConverters) => {
     }
 
     if (configData.createZip) {
-        const output = createWriteStream(targetFolder + "/module.zip");
-        const 
+        const moduleName = readJSONFile("./module.json").id;
+        const output = createWriteStream(`${targetFolder}/${moduleName}.zip`);
+        const archive = archiver("zip");
+        for (const path of readdirSync(targetFolder)) {
+            const stats = statSync(targetFolder + "/" + path);
+            if (stats.isDirectory()) {
+                archive.directory(targetFolder + "/" + path, moduleName + "/" + path);
+            } else {
+                archive.file(targetFolder + "/" + path, { name: moduleName + "/" + path });
+            }
+        }
+        archive.pipe(output);
+        archive.finalize();
     }
 };
