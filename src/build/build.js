@@ -1,4 +1,14 @@
-import { mkdirSync, accessSync, readdirSync, rmSync, cpSync, statSync, writeFileSync, existsSync, createWriteStream } from "fs";
+import {
+    mkdirSync,
+    accessSync,
+    readdirSync,
+    rmSync,
+    cpSync,
+    statSync,
+    writeFileSync,
+    existsSync,
+    createWriteStream,
+} from "fs";
 import { readJSONFile, CONFIG_FILE } from "./config_helper.js";
 
 const archiver = require('archiver');
