@@ -69,9 +69,13 @@ function newTranslationEntry(key, value) {
 function updateTranslationEntry(entry, value) {
     entry.source = unifyLF(entry.source);
     value = unifyLF(value);
+    // For updates on untranslated sources, add new entry instead of updating the current one
+    if (entry.translation === null) {
+        return newTranslationEntry(entry.key, value);
+    }
     if (entry.source !== value) {
         entry.note = `Old source text:\n${entry.source}`;
-        entry.state = "needs-l10n";
+        entry.state = "needs-translation";
         entry.source = value;
     }
     let updatedEntry = `      <trans-unit id="${esc(entry.key)}">\n`;
