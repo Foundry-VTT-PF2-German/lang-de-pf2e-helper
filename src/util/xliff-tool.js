@@ -118,7 +118,7 @@ export function xliffToJson(xliffData, metadata = false) {
     const transUnits = xliffData.match(/<trans-unit[\s\S]*?<\/trans-unit>/g);
     return Object.fromEntries(
         transUnits.map((transUnit) => {
-            const key = unesc(transUnit.match(/<trans-unit id="([^"]*?)">/)[1]);
+            const key = unesc(transUnit.match(/<trans-unit id="([^"]*?)"[^>]*?>/)[1]);
             const source = unesc(transUnit.match(/<source>([^<]*?)</)[1]);
             const targetUnit = transUnit.match(/<target state="[^"]*?">([^<]*?)</);
             const translation = Array.isArray(targetUnit) && targetUnit.length > 1 ? unesc(targetUnit[1]) : null;
