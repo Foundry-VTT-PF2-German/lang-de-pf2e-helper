@@ -157,6 +157,93 @@ export function deletePropertyRecursively(obj, propToDelete) {
 }
 
 /**
+ * Flatten an object
+ *
+ * @param {*} obj       The source object
+ * @param {*} parentKey The parent key (used for recursive function call)
+ * @param {*} result    The result (used for recursive function call)
+ * @returns {Object}    The flattened object
+ * @example {a: {b: [{c:e}]}} gets converted to {a.b.[c].d:e}
+ */
+export function flattenObject(obj, parentKey = "", result = {}) {
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            // Replace dots within a key
+            const replacedKey = key.replace(/\./g, "\\.");
+            let newKey;
+            if (parentKey.includes(".")) {
+                newKey = `${parentKey}.${replacedKey}`;
+            } else {
+                newKey = `${parentKey}${parentKey ? "." : ""}${replacedKey}`;
+            }
+
+            if (Array.isArray(obj[key])) {
+                for (let i = 0; i < obj[key].length; i++) {
+                    const arrayKey = `${newKey}[${i}]`;
+                    if (typeof obj[key][i] === "object" && obj[key][i] !== null) {
+                        flattenObject(obj[key][i], arrayKey, result);
+                    } else {
+                        result[arrayKey] = obj[key][i];
+                    }
+                }
+            } else if (typeof obj[key] === "object" && obj[key] !== null) {
+                flattenObject(obj[key], newKey, result);
+            } else {
+                result[newKey] = obj[key];
+            }
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Unflatten an object
+ *
+ * @param {Object} flattenedObj The flattened object
+ * @returns {Object}            The unflattened object
+ * @example {a.b.[c].d:e} gets converted to {a: {b: [{c:e}]}}
+ */
+export function unflattenObject(flattenedObj) {
+    const unflattenedObj = {};
+
+    for (const key in flattenedObj) {
+        if (flattenedObj.hasOwnProperty(key)) {
+            const keys = key.replace(/\\./g, "__dot__").split(".");
+            let current = unflattenedObj;
+
+            for (let i = 0; i < keys.length; i++) {
+                const unescapedKey = keys[i].replace("__dot__", ".");
+                const isArrayKey = /\[\d+\]/.test(unescapedKey);
+
+                if (isArrayKey) {
+                    const arrayKey = unescapedKey.split("[")[0];
+                    const arrayIndex = parseInt(unescapedKey.match(/\d+/)[0], 10);
+
+                    current[arrayKey] = current[arrayKey] || [];
+                    current[arrayKey][arrayIndex] = current[arrayKey][arrayIndex] || {};
+
+                    if (i === keys.length - 1) {
+                        current[arrayKey][arrayIndex] = flattenedObj[key];
+                    } else {
+                        current = current[arrayKey][arrayIndex];
+                    }
+                } else {
+                    if (i === keys.length - 1) {
+                        current[unescapedKey] = flattenedObj[key];
+                    } else {
+                        current[unescapedKey] = current[unescapedKey] || {};
+                        current = current[unescapedKey];
+                    }
+                }
+            }
+        }
+    }
+
+    return unflattenedObj;
+}
+
+/**
  * Converts an Object array in various ways
  *
  * @param {Array<Object>} data              An array of ojects that should get converted
