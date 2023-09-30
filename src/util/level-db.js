@@ -1,5 +1,5 @@
 import { ClassicLevel } from "classic-level";
-import { readFileSync } from "fs";
+import { isDoc } from "./utilities.js";
 
 // Supported database types
 const DB_KEYS = ["adventures", "actors", "items", "journal", "macros", "tables"];
@@ -81,15 +81,53 @@ export async function getJSONfromPack(databasePath, packType = null) {
 }
 
 /**
- * Creates a levelDB pack from a JSON. Currently only supports adventure extraction, since other types have nested structures
+ * Creates a Foundry levelDB pack. Can also add folder structures if provided
  *
- * @param {string} jsonPath     Path and file name for the JSON file
- * @param {string} databasePath Path to the levelDB database
+ * @param {string} databasePath         Save path for the LevelDB
+ * @param {string} packType             The pack type (adventures, actors, items, journal, macros, tables)
+ * @param {Array<Object>} sourceData    The pack's data
+ * @param {Array<Object>} folders       The pack's folders
  */
-export function createPackFromJSON(jsonPath, databasePath) {
-    const db = new ClassicLevel(databasePath, { keyEncoding: "utf8", valueEncoding: "json" });
-    const sourceJSON = JSON.parse(readFileSync(jsonPath, "utf-8"));
-    sourceJSON.forEach((entry) => {
-        db.put(`!adventures!${entry._id}`, entry);
-    });
+export async function createPack(databasePath, packType, sourceData, folders = []) {
+    const db = new ClassicLevel(databasePath, DB_OPTIONS);
+    const { dbKey, subKey } = { dbKey: packType, subKey: getSubKey(packType) };
+
+    // Initialize sublevel DBs
+    const mainDb = db.sublevel(dbKey, DB_OPTIONS);
+    const subDb = dbKey ? db.sublevel(`${dbKey}.${subKey}`, DB_OPTIONS) : null;
+    const foldersDb = db.sublevel("folders", DB_OPTIONS);
+
+    const docBatch = mainDb.batch();
+    const embeddedBatch = subDb?.batch();
+
+    // Loop through pack data
+    for (const source of sourceData) {
+        if (subKey) {
+            const embeddedDocs = source[subKey];
+            if (Array.isArray(embeddedDocs)) {
+                for (let i = 0; i < embeddedDocs.length; i++) {
+                    const doc = embeddedDocs[i];
+                    if (isDoc(doc) && embeddedBatch) {
+                        embeddedBatch.put(`${source._id}.${doc._id}`, doc);
+                        embeddedDocs[i] = doc._id;
+                    }
+                }
+            }
+        }
+        docBatch.put(source._id, source);
+    }
+    await docBatch.write();
+    if (embeddedBatch?.length) {
+        await embeddedBatch.write();
+    }
+
+    // Add pack folders if provided
+    if (folders.length) {
+        const folderBatch = foldersDb.batch();
+        for (const folder of folders) {
+            folderBatch.put(folder._id, folder);
+        }
+        await folderBatch.write();
+    }
+    await db.close();
 }

@@ -315,3 +315,23 @@ export function sluggify(label) {
         .trim()
         .replace(/[-\s]+/g, "-");
 }
+
+/**
+ * Checks if the variable is an object, not null and not an Array
+ *
+ * @param {*} obj       The variable to be checked
+ * @returns {boolean}   Result
+ */
+export function isObj(obj) {
+    return typeof obj === "object" && !Array.isArray(obj) && obj !== null;
+}
+
+/**
+ * Checks if the variable is a Foundry document including an id
+ *
+ * @param {*} obj       The variable to be checked
+ * @returns {boolean}   Result
+ */
+export function isDoc(obj) {
+    return isObj(obj) && obj._id;
+}
