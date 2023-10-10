@@ -96,7 +96,10 @@ export const PF2_DEFAULT_MAPPING = {
         macros: {
             path: "macros",
             converter: "adventureMacros",
-            extractOptions: { subMapping: { name: { path: "name" } }, specialExtraction: "nameAsKey" },
+            extractOptions: {
+                subMapping: { name: { path: "name" }, command: { path: "command" } },
+                specialExtraction: "nameAsKey",
+            },
         },
         playlists: {
             path: "playlists",
