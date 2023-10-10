@@ -1,3 +1,7 @@
+// Get he module
+import he from "he";
+const { decode } = he;
+
 /**
  * Escape < and > from a string
  *
@@ -6,16 +10,6 @@
  */
 function esc(value) {
     return value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-/**
- * Unescape < and > from a string
- *
- * @param {string} value    The original string
- * @returns {string}        The modified string
- */
-function unesc(value) {
-    return value.replaceAll("&gt;", ">").replaceAll("&lt;", "<");
 }
 
 /**
@@ -118,11 +112,11 @@ export function xliffToJson(xliffData, metadata = false) {
     const transUnits = xliffData.match(/<trans-unit[\s\S]*?<\/trans-unit>/g);
     return Object.fromEntries(
         transUnits.map((transUnit) => {
-            const key = unesc(transUnit.match(/<trans-unit id="([^"]*?)"[^>]*?>/)[1]);
-            const source = unesc(transUnit.match(/<source>([^<]*?)</)[1]);
+            const key = decode(transUnit.match(/<trans-unit id="([^"]*?)"[^>]*?>/)[1]);
+            const source = decode(transUnit.match(/<source>([^<]*?)</)[1]);
             const targetUnit = transUnit.match(/<target state="[^"]*?">([^<]*?)</);
             const translation =
-                Array.isArray(targetUnit) && targetUnit.length > 1 ? unifyLF(unesc(targetUnit[1])) : null;
+                Array.isArray(targetUnit) && targetUnit.length > 1 ? unifyLF(decode(targetUnit[1])) : null;
             if (!metadata) {
                 return [key, translation === null ? source : translation];
             }
