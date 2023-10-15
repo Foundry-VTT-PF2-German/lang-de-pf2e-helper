@@ -190,7 +190,7 @@ export const PF2_DEFAULT_MAPPING = {
             extractOptions: { subMapping: "label" },
         },
         source: {
-            path: "system.details.publication.title",
+            path: "system.publication.title",
             converter: "translateSource",
             extractOptions: { addToDictionary: true, extractValue: false },
         },
