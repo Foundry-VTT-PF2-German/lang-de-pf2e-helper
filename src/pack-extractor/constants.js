@@ -37,14 +37,9 @@ export const PF2_DEFAULT_MAPPING = {
         saveDetails: { path: "system.attributes.allSaves.value" },
         senses: { path: "system.traits.senses.value" },
         source: {
-            path: "system.details.source.value",
+            path: "system.details.publication.title",
             converter: "translateSource",
             extractOptions: { addToDictionary: true, extractValue: false },
-        },
-        source2: {
-            path: "system.source.value",
-            converter: "translateSource",
-            extractOptions: { addToDictionary: true, alternateMappingKey: "source", extractValue: false },
         },
         speed: { path: "system.details.speed" },
         speed2: {
@@ -195,7 +190,7 @@ export const PF2_DEFAULT_MAPPING = {
             extractOptions: { subMapping: "label" },
         },
         source: {
-            path: "system.source.value",
+            path: "system.details.publication.title",
             converter: "translateSource",
             extractOptions: { addToDictionary: true, extractValue: false },
         },
