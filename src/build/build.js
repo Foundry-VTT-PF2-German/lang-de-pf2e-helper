@@ -1,10 +1,23 @@
-import { mkdirSync, accessSync, readdirSync, rmSync, cpSync, statSync, writeFileSync, existsSync } from "fs";
+import {
+    mkdirSync,
+    accessSync,
+    readdirSync,
+    rmSync,
+    cpSync,
+    statSync,
+    writeFileSync,
+    existsSync,
+    createWriteStream,
+} from "fs";
 import { readJSONFile, CONFIG_FILE } from "./config_helper.js";
+import archiver from "archiver";
 
 export const build = (paths, targetFolder, extraConverters) => {
+    const configData = readJSONFile(CONFIG_FILE);
+
     if (targetFolder === undefined && existsSync(CONFIG_FILE)) {
         // We may want to move this higher in case we get more relevant parameters in the config file
-        targetFolder = readJSONFile(CONFIG_FILE).buildPath;
+        targetFolder = configData.buildPath;
     }
 
     // Default value in case no folder was given and no preference was found in the config file
@@ -52,5 +65,21 @@ export const build = (paths, targetFolder, extraConverters) => {
 
     for (const file of paths) {
         recursiveCopy(file);
+    }
+
+    if (configData.createZip) {
+        const moduleName = readJSONFile("./module.json").id;
+        const output = createWriteStream(`${targetFolder}/${moduleName}.zip`);
+        const archive = archiver("zip");
+        for (const path of readdirSync(targetFolder)) {
+            const stats = statSync(targetFolder + "/" + path);
+            if (stats.isDirectory()) {
+                archive.directory(targetFolder + "/" + path, moduleName + "/" + path);
+            } else {
+                archive.file(targetFolder + "/" + path, { name: moduleName + "/" + path });
+            }
+        }
+        archive.pipe(output);
+        archive.finalize();
     }
 };
