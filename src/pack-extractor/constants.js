@@ -221,6 +221,7 @@ export const PF2_DEFAULT_MAPPING = {
     journalPages: {
         name: { path: "name", extractOptions: { addToMapping: false } },
         text: { path: "text.content", extractOptions: { addToMapping: false } },
+        caption: { path: "image.caption", extractOptions: { addToMapping: false } }
     },
     label: {
         label: { path: "label", extractOptions: { addToMapping: false } },
