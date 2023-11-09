@@ -9,7 +9,7 @@ const { decode } = he;
  * @returns {string}        The modified string
  */
 function esc(value) {
-    return value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return value.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 /**
