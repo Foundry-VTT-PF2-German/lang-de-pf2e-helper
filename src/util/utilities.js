@@ -213,7 +213,7 @@ export function unflattenObject(flattenedObj) {
             let current = unflattenedObj;
 
             for (let i = 0; i < keys.length; i++) {
-                const unescapedKey = keys[i].replace("__dot__", ".");
+                const unescapedKey = keys[i].replaceAll("__dot__", ".");
                 const isArrayKey = /\[\d+\]/.test(unescapedKey);
 
                 if (isArrayKey) {
