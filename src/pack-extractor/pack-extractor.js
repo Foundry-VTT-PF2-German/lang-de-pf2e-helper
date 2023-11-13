@@ -242,6 +242,12 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
                     nestedEntry = "adventureActorItems";
                 }
 
+                // For adventure journal pages, use the name entry as key instead of the array index
+                if (extractOptions.specialExtraction === "adventureJournalPages") {
+                    subEntryKey = extractedValue[subEntry].name;
+                    nestedEntry = "adventureJournalPages";
+                }
+
                 // For table results, build special key consisting of the roll ranges
                 if (extractOptions.specialExtraction === "tableResults") {
                     subEntryKey = `${extractedValue[subEntry].range[0]}-${extractedValue[subEntry].range[1]}`;
@@ -278,14 +284,14 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
                     extractedEntryData.extractedEntry[mappingKey] = extractedEntryData.extractedEntry[mappingKey] || {};
 
                     // For regular subentries add the extracted data
-                    if (!extractedSubEntry.extractedEntry.hasOwnProperty("actorItemId")) {
+                    if (!extractedSubEntry.extractedEntry.hasOwnProperty("duplicateId")) {
                         Object.assign(extractedEntryData.extractedEntry[mappingKey], {
                             [subEntryKey]: extractedSubEntry.extractedEntry,
                         });
 
                         // For actor items check for duplicates and either add the data or create an array in order to keep all duplicates
                     } else {
-                        itemDuplicates(
+                        entryDuplicates(
                             extractedEntryData.extractedEntry[mappingKey],
                             subEntryKey,
                             extractedSubEntry.extractedEntry
@@ -308,8 +314,8 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
                 );
             });
 
-            // Delete all actorItemIds since those were only required to identify multiple item copies
-            deletePropertyRecursively(extractedEntryData.extractedEntry, "actorItemId");
+            // Delete all duplicateIds since those were only required to identify multiple item copies
+            deletePropertyRecursively(extractedEntryData.extractedEntry, "duplicateId");
 
             // During actor item extraction duplicate entries (e.g. two shortswords) were added to the extracted entry as an array with the id as identifier
             // However, entries that only contain the id with not other extracted data are not needed and have to be deleted
@@ -344,8 +350,14 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
             }
 
             // Add the item id in order to identify item duplicates (e.g. two shortswords in the actor's inventory)
-            extractedEntryData.extractedEntry.actorItemId = entry._id;
+            extractedEntryData.extractedEntry.duplicateId = entry._id;
             continue;
+        }
+
+        // Special extraction for adventure journal pages
+        if (nestedEntryType === "adventureJournalPages") {
+            // Add the pages id in order to identify multiple pages with the same name
+            extractedEntryData.extractedEntry.duplicateId = entry._id;
         }
 
         // For plain data collections, return the plain value instead of an object using the mapping key
@@ -532,7 +544,7 @@ export function buildItemDatabase(itemPacks, packMapping) {
  * @param {string} property The property that should get added
  * @param {Object} value    The value for the property
  */
-function itemDuplicates(obj, property, value) {
+function entryDuplicates(obj, property, value) {
     if (!obj.hasOwnProperty(property)) {
         Object.assign(obj, {
             [property]: value,
@@ -540,17 +552,17 @@ function itemDuplicates(obj, property, value) {
     } else if (obj.hasOwnProperty(property) && Array.isArray(obj[property])) {
         obj[property].push({
             ...value,
-            id: value.actorItemId,
+            id: value.duplicateId,
         });
     } else {
         obj[property] = [
             {
                 ...obj[property],
-                id: obj[property].actorItemId,
+                id: obj[property].duplicateId,
             },
             {
                 ...value,
-                id: value.actorItemId,
+                id: value.duplicateId,
             },
         ];
     }
