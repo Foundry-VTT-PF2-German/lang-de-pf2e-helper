@@ -80,7 +80,7 @@ export const PF2_DEFAULT_MAPPING = {
         },
         journal: {
             path: "journal",
-            converter: "adventureJournals",
+            converter: "translateAdventureJournals",
             extractOptions: { subMapping: "adventureJournal", specialExtraction: "nameAsKey" },
         },
         tables: {
