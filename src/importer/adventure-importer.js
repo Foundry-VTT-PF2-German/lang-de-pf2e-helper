@@ -1,4 +1,4 @@
-const keepImportPrefix = '[keep-on-import]';
+const keepImportPrefix = "[keep-on-import]";
 
 const getPackData = (document) => {
     // Skip actors without sourceId
@@ -21,9 +21,9 @@ const getPackData = (document) => {
     return {
         documentID,
         importType,
-        packName
-    }
-}
+        packName,
+    };
+};
 
 const getSource = async (packData) => {
     const pack = game.packs.get(packData.packName);
@@ -38,7 +38,7 @@ const getSource = async (packData) => {
         console.warn(actor);
     }
     return source;
-}
+};
 
 export const registerAdventureImporter = (packName) => {
     Hooks.on("preImportAdventure", async (adventure, formData, toCreate, toUpdate) => {
@@ -79,7 +79,7 @@ export const registerAdventureImporter = (packName) => {
                                 const sourceItem = await getSource(itemPackData);
                                 if (sourceItem) {
                                     const sourceItemData = sourceItem.toObject();
-                                    
+
                                     // Take identification state, equipped, material and runes from original item, if available
                                     const system = foundry.utils.mergeObject(sourceItemData.system, {
                                         identification: item.identification,
@@ -90,7 +90,7 @@ export const registerAdventureImporter = (packName) => {
                                         propertyRune2: item.propertyRune2,
                                         propertyRune3: item.propertyRune3,
                                         propertyRune4: item.propertyRune4,
-                                        strikingRune: item.strikingRune
+                                        strikingRune: item.strikingRune,
                                     });
                                     addItem = foundry.utils.mergeObject(item, {
                                         system: system,
