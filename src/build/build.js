@@ -36,8 +36,16 @@ export const build = (paths, targetFolder, extraConverters) => {
         }
     }
 
+    let ignoreFolders = readJSONFile(CONFIG_FILE).ignoreFolders;
+    if (ignoreFolders === undefined) {
+        ignoreFolders = [];
+    }
+
     // Delete all files and folders below target folder, so we don't get any artifacts from previous builds
     for (const path of readdirSync(targetFolder)) {
+        if (ignoreFolders.includes(path)) {
+            continue;
+        }
         rmSync(targetFolder + "/" + path, { recursive: true });
     }
 
@@ -64,6 +72,9 @@ export const build = (paths, targetFolder, extraConverters) => {
     };
 
     for (const file of paths) {
+        if (ignoreFolders.includes(file)) {
+            continue;
+        }
         recursiveCopy(file);
     }
 
