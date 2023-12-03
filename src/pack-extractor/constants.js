@@ -173,7 +173,7 @@ export const PF2_DEFAULT_MAPPING = {
             path: "system.prerequisites.value",
             extractOptions: { extractOnActorItem: false, convertArray: false },
         },
-        primarycheck: { path: "system.primarycheck.value" },
+        primarycheck: { path: "system.ritual.primary.check" },
         range: {
             path: "system.range.value",
             converter: "translateRange",
@@ -184,8 +184,8 @@ export const PF2_DEFAULT_MAPPING = {
             converter: "translateRules",
             extractOptions: { subMapping: "rule" },
         },
-        secondarycaster: { path: "system.secondarycasters.value" },
-        secondarycheck: { path: "system.secondarycheck.value" },
+        secondarycaster: { path: "system.ritual.secondary.casters" },
+        secondarycheck: { path: "system.ritual.secondary.checks" },
         skillVariants: {
             path: "system.variants",
             extractOptions: { subMapping: "label" },
