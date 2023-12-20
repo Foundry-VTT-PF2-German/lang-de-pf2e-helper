@@ -3,13 +3,21 @@ import he from "he";
 const { decode } = he;
 
 /**
- * Escape < and > from a string
+ * Escape <, >, and " from a string, depending on params
  *
- * @param {string} value    The original string
- * @returns {string}        The modified string
+ * @param {string} value            The original string
+ * @param {boolean} escBrackets     Escape < and >? Default: true
+ * @param {boolean} escQuote        Escape "? Default: false
+ * @returns {string}                The modified string
  */
-function esc(value) {
-    return value.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function esc(value, escBrackets = true, escQuote = false) {
+    if (escBrackets) {
+        value = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    if (escQuote) {
+        value = value.replace(/"/g, "&quot;");
+    }
+    return value;
 }
 
 /**
@@ -45,7 +53,7 @@ function finalizeXliff(entries) {
  * @returns {string}        The new translation unit
  */
 function newTranslationEntry(key, value) {
-    let newEntry = `      <trans-unit id="${esc(key)}">\n`;
+    let newEntry = `      <trans-unit id="${esc(key, false, true)}">\n`;
     newEntry += `        <source>${esc(unifyLF(value))}</source>\n`;
     newEntry += `        <target state="new"/>\n`;
     newEntry += `      </trans-unit>\n`;
@@ -72,7 +80,7 @@ function updateTranslationEntry(entry, value) {
         entry.state = "needs-translation";
         entry.source = value;
     }
-    let updatedEntry = `      <trans-unit id="${esc(entry.key)}">\n`;
+    let updatedEntry = `      <trans-unit id="${esc(entry.key, false, true)}">\n`;
     updatedEntry += `        <source>${esc(entry.source)}</source>\n`;
     updatedEntry += `        <target state="${entry.state}">`;
     updatedEntry += `${esc(entry.translation)}</target>\n`;
