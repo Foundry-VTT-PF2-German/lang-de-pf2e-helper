@@ -272,6 +272,11 @@ export const PF2_DEFAULT_MAPPING = {
             converter: "textCollection",
             extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
         },
+        tiles: {
+            path: "tiles",
+            converter: "translateTiles",
+            extractOptions: { subMapping: "tile" },
+        },
     },
     spellVariant: {
         name: {
@@ -315,5 +320,8 @@ export const PF2_DEFAULT_MAPPING = {
     },
     text: {
         text: { path: "text", extractOptions: { addToMapping: false } },
+    },
+    tile: {
+        texture: { path: "texture.src", extractOptions: { addToMapping: false } },
     },
 };
