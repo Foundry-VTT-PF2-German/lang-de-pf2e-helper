@@ -11,6 +11,9 @@ const { decode } = he;
  * @returns {string}                The modified string
  */
 function esc(value, escBrackets = true, escQuote = false) {
+    if (!value) {
+        return value;
+    }
     if (escBrackets) {
         value = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
@@ -27,6 +30,9 @@ function esc(value, escBrackets = true, escQuote = false) {
  * @returns {string}    The modified string
  */
 function unifyLF(data) {
+    if (!data) {
+        return data;
+    }
     return data.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 }
 
@@ -54,7 +60,11 @@ function finalizeXliff(entries) {
  */
 function newTranslationEntry(key, value) {
     let newEntry = `      <trans-unit id="${esc(key, false, true)}">\n`;
-    newEntry += `        <source>${esc(unifyLF(value))}</source>\n`;
+    if (!value) {
+        newEntry += `        <source/>\n`;
+    } else {
+        newEntry += `        <source>${esc(unifyLF(value))}</source>\n`;
+    }
     newEntry += `        <target state="new"/>\n`;
     newEntry += `      </trans-unit>\n`;
 
@@ -81,7 +91,11 @@ function updateTranslationEntry(entry, value) {
         entry.source = value;
     }
     let updatedEntry = `      <trans-unit id="${esc(entry.key, false, true)}">\n`;
-    updatedEntry += `        <source>${esc(entry.source)}</source>\n`;
+    if (!entry.source) {
+        updatedEntry += `        <source/>\n`;
+    } else {
+        updatedEntry += `        <source>${esc(entry.source)}</source>\n`;
+    }
     updatedEntry += `        <target state="${entry.state}">`;
     updatedEntry += `${esc(entry.translation)}</target>\n`;
     if (entry.note && entry.note !== "") {
@@ -121,7 +135,7 @@ export function xliffToJson(xliffData, metadata = false) {
     return Object.fromEntries(
         transUnits.map((transUnit) => {
             const key = decode(transUnit.match(/<trans-unit id="([^"]*?)"[^>]*?>/)[1]);
-            const source = decode(transUnit.match(/<source>([^<]*?)</)[1]);
+            const source = transUnit.match(/<source\/>/) ? null : decode(transUnit.match(/<source>([^<]*?)</)[1]);
             const targetUnit = transUnit.match(/<target state="[^"]*?">([^<]*?)</);
             const translation =
                 Array.isArray(targetUnit) && targetUnit.length > 1 ? unifyLF(decode(targetUnit[1])) : null;
