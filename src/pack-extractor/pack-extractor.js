@@ -504,7 +504,7 @@ function checkLocalizationRelevance(data) {
  * Create an item database consisting of the Foundry compendium links and defined item properies
  *
  * @param {{path: string, fileName: string, fileType: string, content: string}} itemPacks   The item packs
- * @param {{fields: Array<string>, packs: Object}} packMapping                              Maps pack files to compendium links and defines required property fields for the database
+ * @param {{blacklist: Array<string>, fields: Array<string>, packs: Object}} packMapping    Maps pack files to compendium links and defines required property fields for the database and blacklisted items
  * @returns {Object}                                                                        The item database
  */
 export function buildItemDatabase(itemPacks, packMapping) {
@@ -514,9 +514,13 @@ export function buildItemDatabase(itemPacks, packMapping) {
     itemPacks.forEach((pack) => {
         // Get the packMapping for the current pack if it exists
         if (packMapping.packs[pack.fileName] !== undefined) {
-            // Loop through the pack items and build database
+            // Loop through the pack items and build database, exclude items on blacklist
             JSON.parse(pack.content).forEach((item) => {
-                const itemLink = item.flags?.core?.sourceId ?? "";
+                const itemLink =
+                    item.flags?.core?.sourceId && !packMapping.blacklist.includes(item.flags.core.sourceId)
+                        ? item.flags.core.sourceId
+                        : "";
+
                 const itemFields = {};
 
                 // Get the required item properties for the item database
