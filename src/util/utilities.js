@@ -310,7 +310,7 @@ export function sluggify(label) {
     return label
         .replace(/([a-z])([A-Z])\B/g, "$1-$2")
         .toLowerCase()
-        .replace(/'/g, "")
+        .replace(/['’]/g, "")
         .replace(/[^a-z0-9]+/gi, " ")
         .trim()
         .replace(/[-\s]+/g, "-");
