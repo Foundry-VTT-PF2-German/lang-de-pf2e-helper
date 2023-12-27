@@ -3,7 +3,8 @@ import he from "he";
 const { decode } = he;
 
 /**
- * Escape &, <, >, and " from a string, depending on params. Also replaces &requo; with ' and &nbsp; with ""
+ * Escape &, <, >, and " from a string, depending on params.
+ * Also replaces &requo; with "'", &nbsp; with "" and &mdash; with "—"
  *
  * @param {string} value            The original string
  * @param {boolean} escBrackets     Escape < and >? Default: true
@@ -15,6 +16,7 @@ function esc(value, escBrackets = true, escQuote = false) {
         return value;
     }
     value = value.replace(/\&rsquo;/g, "’");
+    value = value.replace(/\&mdash;/g, "—");
     value = value.replace(/\&nbsp;/g, "");
     if (escBrackets) {
         value = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
