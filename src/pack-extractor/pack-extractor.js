@@ -218,6 +218,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
                     nestedEntry = "adventureActors";
                     if (
                         resolvePath(extractedValue[subEntry], "flags.core.sourceId").exists &&
+                        extractedValue[subEntry].flags.core.sourceId !== null &&
                         extractedValue[subEntry].flags.core.sourceId.includes("Compendium.pf2e.")
                     ) {
                         nestedEntry = "adventureCompendiumActors";
