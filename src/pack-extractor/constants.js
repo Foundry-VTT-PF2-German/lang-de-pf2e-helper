@@ -21,7 +21,7 @@ export const PF2_DEFAULT_MAPPING = {
         familiarType: { path: "system.details.creature.value" },
         gender: { path: "system.details.gender.value" },
         hpDetails: { path: "system.attributes.hp.details" },
-        languages: { path: "system.traits.languages.custom" },
+        languages: { path: "system.details.languages.details" },
         pilotingCheck: { path: "system.details.pilotingCheck" },
         portrait: {
             path: "img",
@@ -35,7 +35,7 @@ export const PF2_DEFAULT_MAPPING = {
         reset: { path: "system.details.reset" },
         routine: { path: "system.details.routine" },
         saveDetails: { path: "system.attributes.allSaves.value" },
-        senses: { path: "system.traits.senses.value" },
+        senses: { path: "system.perception.details" },
         source: {
             path: "system.details.publication.title",
             converter: "translateSource",
