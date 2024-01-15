@@ -1,6 +1,6 @@
 {
     "devDependencies": {
-        "@crowdin/crowdin-api-client": "^1.29.4",
+        "@crowdin/crowdin-api-client": "^1.29.5",
         "@prantlf/jsonlint": "^14.0.3",
         "@zip.js/zip.js": "^2.7.32",
         "classic-level": "^1.3.0",
