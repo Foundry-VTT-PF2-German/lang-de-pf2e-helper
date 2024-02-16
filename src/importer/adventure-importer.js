@@ -29,13 +29,11 @@ const getSource = async (packData) => {
     const pack = game.packs.get(packData.packName);
     if (!pack) {
         console.warn(`Pack not found: ${packData.packName}`);
-        console.warn(actor);
         return null;
     }
     const source = await pack.getDocument(packData.documentID);
     if (!source) {
         console.warn(`No source found for ID ${packData.packName} => ${packData.documentID}`);
-        console.warn(actor);
     }
     return source;
 };
