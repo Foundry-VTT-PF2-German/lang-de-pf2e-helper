@@ -84,8 +84,8 @@ function newTranslationEntry(key, value) {
  * @returns {string}                                                            The updated translation unit
  */
 function updateTranslationEntry(entry, value) {
-    entry.source = unifyLF(entry.source);
-    value = unifyLF(value);
+    entry.source = esc(unifyLF(entry.source));
+    value = esc(unifyLF(value));
     // For updates on untranslated sources, add new entry instead of updating the current one
     if (entry.translation === null) {
         return newTranslationEntry(entry.key, value);
@@ -99,7 +99,7 @@ function updateTranslationEntry(entry, value) {
     if (!entry.source) {
         updatedEntry += `        <source/>\n`;
     } else {
-        updatedEntry += `        <source>${esc(entry.source)}</source>\n`;
+        updatedEntry += `        <source>${entry.source}</source>\n`;
     }
     updatedEntry += `        <target state="${entry.state}">`;
     updatedEntry += `${esc(entry.translation)}</target>\n`;
