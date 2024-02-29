@@ -104,7 +104,11 @@ export const PF2_DEFAULT_MAPPING = {
         scenes: {
             path: "scenes",
             converter: "translateAdventureScenes",
-            extractOptions: { subMapping: "scene", specialExtraction: "adventureScenes", subMappingAsMapping: true },
+            extractOptions: {
+                subMapping: "adventureScene",
+                specialExtraction: "adventureScenes",
+                subMappingAsMapping: true,
+            },
         },
         folders: {
             path: "folders",
@@ -127,6 +131,25 @@ export const PF2_DEFAULT_MAPPING = {
         name: { path: "name", extractOptions: { addToMapping: false } },
         id: { path: "_id", extractOptions: { addToMapping: false } },
         caption: { path: "image.caption", extractOptions: { addToMapping: false } },
+    },
+    adventureScene: {
+        name: { path: "name" },
+        background: { path: "background.src" },
+        drawings: {
+            path: "drawings",
+            converter: "textCollection",
+            extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
+        },
+        notes: {
+            path: "notes",
+            converter: "textCollection",
+            extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
+        },
+        tiles: {
+            path: "tiles",
+            converter: "translateTiles",
+            extractOptions: { subMapping: "tile" },
+        },
     },
     heightening: {
         duration: {
@@ -259,25 +282,6 @@ export const PF2_DEFAULT_MAPPING = {
         prompt: { path: "prompt", extractOptions: { addToMapping: false } },
         text: { path: "text", extractOptions: { addToMapping: false } },
         value: { path: "value", extractOptions: { addToMapping: false, subMapping: "text" } },
-    },
-    scene: {
-        name: { path: "name" },
-        background: { path: "background.src" },
-        drawings: {
-            path: "drawings",
-            converter: "textCollection",
-            extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
-        },
-        notes: {
-            path: "notes",
-            converter: "textCollection",
-            extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
-        },
-        tiles: {
-            path: "tiles",
-            converter: "translateTiles",
-            extractOptions: { subMapping: "tile" },
-        },
     },
     spellVariant: {
         name: {
