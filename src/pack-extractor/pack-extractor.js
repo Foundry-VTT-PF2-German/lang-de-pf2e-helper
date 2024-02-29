@@ -250,9 +250,9 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
                 }
 
                 // For scenes, set nested entry type to scene
-                if (extractOptions.specialExtraction === "scenes") {
+                if (extractOptions.specialExtraction === "adventureScenes") {
                     subEntryKey = extractedValue[subEntry].name;
-                    nestedEntry = "scenes";
+                    nestedEntry = "adventureScenes";
                 }
 
                 // For table results, build special key consisting of the roll ranges
@@ -384,7 +384,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
         }
 
         // Special extraction for adventure scenes
-        if (nestedEntryType === "scenes") {
+        if (nestedEntryType === "adventureScenes") {
             // Add the scene id in order to identify multiple scenes with the same name
             extractedEntryData.extractedEntry.duplicateId = entry._id;
         }

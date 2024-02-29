@@ -103,8 +103,8 @@ export const PF2_DEFAULT_MAPPING = {
         },
         scenes: {
             path: "scenes",
-            converter: "adventureScenes",
-            extractOptions: { subMapping: "scene", specialExtraction: "scenes", subMappingAsMapping: true },
+            converter: "translateAdventureScenes",
+            extractOptions: { subMapping: "scene", specialExtraction: "adventureScenes", subMappingAsMapping: true },
         },
         folders: {
             path: "folders",
