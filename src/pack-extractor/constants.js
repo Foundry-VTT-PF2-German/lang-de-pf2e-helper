@@ -136,17 +136,14 @@ export const PF2_DEFAULT_MAPPING = {
         background: { path: "background.src" },
         drawings: {
             path: "drawings",
-            converter: "textCollection",
             extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
         },
         notes: {
             path: "notes",
-            converter: "textCollection",
             extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
         },
         tiles: {
             path: "tiles",
-            converter: "translateTiles",
             extractOptions: { subMapping: "tile" },
         },
     },
