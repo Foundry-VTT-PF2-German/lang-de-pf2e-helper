@@ -261,6 +261,12 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
                     nestedEntry = "plainData";
                 }
 
+                // For tokens, set nested entry type to token
+                if (extractOptions.specialExtraction === "tokens") {
+                    subEntryKey = extractedValue[subEntry].name;
+                    nestedEntry = "token";
+                }
+
                 // For arrays, there might be the need for using the name entry as key instead of the array index
                 if (extractOptions.specialExtraction === "nameAsKey") {
                     subEntryKey = extractedValue[subEntry].name;
@@ -383,9 +389,9 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
             continue;
         }
 
-        // Special extraction for adventure scenes
-        if (nestedEntryType === "adventureScenes") {
-            // Add the scene id in order to identify multiple scenes with the same name
+        // Special extraction for adventure scenes and tokens
+        if (["adventureScenes", "token"].includes(nestedEntryType)) {
+            // Add the scene id or  token id in order to identify multiple scenes or tokens with the same name
             extractedEntryData.extractedEntry.duplicateId = entry._id;
         }
 
