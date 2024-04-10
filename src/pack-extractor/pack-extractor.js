@@ -401,6 +401,25 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
 }
 
 /**
+ * Extracts folder names for a list of folder packs
+ *
+ * @param {Array<Object>} folderPacks   Array containing the folder packs
+ * @returns {Object}                    Object list of compendium packs containing their folder names
+ */
+export function extractFolders(folderPacks) {
+    const extractedFolders = {};
+    folderPacks.forEach((folderPack) => {
+        const packName = folderPack.fileName.replace("_folders", "");
+        extractedFolders[packName] = {};
+        JSON.parse(folderPack.content).forEach((folder) => {
+            Object.assign(extractedFolders[packName], { [folder.name]: folder.name });
+        });
+    });
+
+    return extractedFolders;
+}
+
+/**
  * Formats an extracted value for an actor item
  * This is neccessary, due to the Foundry data structure of many actor items being
  * copies from compendium entries, but receive changes in differenz fields (e.g. name)
