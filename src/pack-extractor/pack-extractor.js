@@ -16,11 +16,19 @@ export function extractPackGroupList(packs, config, itemDatabase = {}) {
         packGroupListDictionary: {},
     };
     for (const [groupName, packGroupConfig] of Object.entries(config)) {
+        // Get existing folder packs for the current pack group
+        const folderPacks = packs.filter(
+            (pack) =>
+                pack.fileName.includes("_folders") &&
+                packGroupConfig.packNames.includes(pack.fileName.replace("_folders", ""))
+        );
+
         const extractedPackGroupData = extractPackGroup(
             groupName,
             packs.filter((pack) => packGroupConfig.packNames.includes(pack.fileName)),
             packGroupConfig.mapping,
-            itemDatabase
+            itemDatabase,
+            extractFolders(folderPacks)
         );
         extractedPackGroupListData.extractedPackGroups[groupName] = extractedPackGroupData.extractedPacks;
         extractedPackGroupListData.packGroupListDictionary = mergeNestedObjects(
@@ -39,9 +47,10 @@ export function extractPackGroupList(packs, config, itemDatabase = {}) {
  * @param {Array<Object>} packs     An array of compendium packs
  * @param {Object} mapping          Contains the mapping for the packGroup
  * @param {Object} itemDatabase     Contains a database for compendium items to validate nested item entries against
+ * @param {Object} folderPacks      Contains folders for the compendium packs
  * @returns {Object}                Extracted data, stored in extractedPacks and packGroupDictionary
  */
-export function extractPackGroup(groupName, packs, mapping, itemDatabase = {}) {
+export function extractPackGroup(groupName, packs, mapping, itemDatabase = {}, folderPacks) {
     postExtractMessage(groupName, true);
 
     const extractedPackGroupData = {
@@ -50,7 +59,13 @@ export function extractPackGroup(groupName, packs, mapping, itemDatabase = {}) {
     };
 
     packs.forEach((pack) => {
-        const extractedPackData = extractPack(pack.fileName, JSON.parse(pack.content), mapping, itemDatabase);
+        const extractedPackData = extractPack(
+            pack.fileName,
+            JSON.parse(pack.content),
+            mapping,
+            itemDatabase,
+            folderPacks[pack.fileName]
+        );
         extractedPackGroupData.extractedPacks[pack.fileName] = extractedPackData.extractedPack;
         extractedPackGroupData.packGroupDictionary = mergeNestedObjects(
             extractedPackGroupData.packGroupDictionary,
@@ -69,9 +84,10 @@ export function extractPackGroup(groupName, packs, mapping, itemDatabase = {}) {
  * @param {Array<Object>} pack      A compendium pack
  * @param {Object} mapping          Contains the mapping for the pack
  * @param {Object} itemDatabase     Contains a database for compendium items to validate nested item entries against
+ * @param {Object} packFolders      Contains folders for the compendium pack
  * @returns {Object}                Extracted data, stored in extractedPack and packDictionary
  */
-export function extractPack(packName, pack, mapping, itemDatabase = {}) {
+export function extractPack(packName, pack, mapping, itemDatabase = {}, packFolders) {
     postExtractMessage(packName);
 
     const extractedPackData = {
@@ -82,6 +98,11 @@ export function extractPack(packName, pack, mapping, itemDatabase = {}) {
         },
         packDictionary: {},
     };
+
+    // Add compendium folders if pack folders exist
+    if (packFolders) {
+        extractedPackData.extractedPack.folders = packFolders;
+    }
 
     pack.forEach((entry) => {
         const extractedEntryData = extractEntry(entry, mapping, itemDatabase);
@@ -406,7 +427,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
  * @param {Array<Object>} folderPacks   Array containing the folder packs
  * @returns {Object}                    Object list of compendium packs containing their folder names
  */
-export function extractFolders(folderPacks) {
+function extractFolders(folderPacks) {
     const extractedFolders = {};
     folderPacks.forEach((folderPack) => {
         const packName = folderPack.fileName.replace("_folders", "");
