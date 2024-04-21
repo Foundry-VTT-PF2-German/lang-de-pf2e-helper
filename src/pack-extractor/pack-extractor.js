@@ -149,6 +149,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
         extractValue: true, // Defines if value should get extracted
         extractOnActorItem: true, // Defines if value should get extracted for items within actors
         extractOnAdventureActor: false, // For special extraction adventureActor, only data for non-compendium actors gets extracted by default. Set to true in order to extract the data
+        onlyValues: false, // Defines if extraction should only happen for plain values at the specified path (Arrays and Objects are ignored if set to true)
         alternateMappingKey: false, // Defines if a different key should get used for the mapping
         alwaysAddMapping: false, // Defines if mapping should always get added, even if no value is found
         subMapping: false, // Defines if a submapping exists (for nested entries like rules or actor items)
@@ -218,6 +219,9 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
         // Check if the current field should get extracted
         // Skip further steps if not
         if (!extractOptions.extractValue) continue;
+
+        // Check if only plain values should get extracted
+        if (extractOptions.onlyValues && typeof extractedValue === "object") continue;
 
         // Further progress extraction steps if field should get extracted
 
