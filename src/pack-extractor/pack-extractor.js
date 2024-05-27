@@ -566,6 +566,7 @@ function checkLocalizationRelevance(data) {
         if (data === null || data === "") return false;
         if (!isNaN(data)) return false;
         if (data.substring(0, 4) === "PF2E") return false;
+        if (data.substring(0, 5) === "TYPES") return false;
         if (data.search(RegExp(`^\\{[^\\}]*\\}$`, "g")) !== -1) return false;
         if (data.search(RegExp(`^<p>@Localize\\[[^\\]]*\\]</p>$`, "g")) !== -1) return false;
     }
