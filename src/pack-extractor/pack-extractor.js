@@ -579,10 +579,13 @@ function checkLocalizationRelevance(data) {
  * @returns {string}    The strike type, either "strike-melee" or "strike-ranged"
  */
 function checkStrikeType(strike) {
+    let strikeType = "strike-melee";
     strike.system.traits.value.forEach((trait) => {
-        if (trait.startsWith("range-")) return "strike-ranged";
+        if (trait.startsWith("range-")) {
+            strikeType = "strike-ranged";
+        }
     });
-    return "strike-melee";
+    return strikeType;
 }
 
 /**
