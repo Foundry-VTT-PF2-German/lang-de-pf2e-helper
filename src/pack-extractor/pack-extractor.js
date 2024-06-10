@@ -254,7 +254,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
                 if (extractOptions.specialExtraction === "actorItems") {
                     subEntryKey = `${extractedValue[subEntry].type}->`;
                     if (extractedValue[subEntry].type === "melee") {
-                        subEntryKey = `strike-${extractedValue[subEntry].system.weaponType.value}->`;
+                        subEntryKey = `${checkStrikeType(extractedValue[subEntry])}->`;
                     }
                     subEntryKey = subEntryKey.concat(`${extractedValue[subEntry].name}`);
                     nestedEntry = "actorItems";
@@ -571,6 +571,18 @@ function checkLocalizationRelevance(data) {
         if (data.search(RegExp(`^<p>@Localize\\[[^\\]]*\\]</p>$`, "g")) !== -1) return false;
     }
     return true;
+}
+
+/**
+ * Check if strike is ranged or melee and return the type
+ * @param {*} strike    Object containing the strike
+ * @returns {string}    The strike type, either "strike-melee" or "strike-ranged"
+ */
+function checkStrikeType(strike) {
+    strike.system.traits.value.forEach((trait) => {
+        if (trait.startsWith("range-")) return "strike-ranged";
+    });
+    return "strike-melee";
 }
 
 /**
