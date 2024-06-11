@@ -252,7 +252,10 @@ export const PF2_DEFAULT_MAPPING = {
             converter: "translateTime",
             extractOptions: { addToDictionary: true, extractValue: false },
         },
-        trainedLore: { path: "system.trainedSkills.lore", extractOptions: { extractOnActorItem: false } },
+        trainedLore: {
+            path: "system.trainedSkills.lore",
+            extractOptions: { extractOnActorItem: false, convertArray: false },
+        },
     },
     journal: {
         name: { path: "name" },
