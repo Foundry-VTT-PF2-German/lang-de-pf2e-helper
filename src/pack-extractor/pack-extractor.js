@@ -575,7 +575,7 @@ function checkLocalizationRelevance(data) {
 
 /**
  * Check if strike is ranged or melee and return the type
- * @param {*} strike    Object containing the strike
+ * @param {*} strike    Object containing the strike data
  * @returns {string}    The strike type, either "strike-melee" or "strike-ranged"
  */
 function checkStrikeType(strike) {
