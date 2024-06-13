@@ -142,6 +142,10 @@ export const PF2_DEFAULT_MAPPING = {
             path: "notes",
             extractOptions: { subMapping: "text", specialExtraction: "textCollection" },
         },
+        regions: {
+            path: "regions",
+            extractOptions: { subMapping: { name: { path: "name" } }, specialExtraction: "nameCollection" },
+        },
         tiles: {
             path: "tiles",
             extractOptions: { subMapping: "tile" },
