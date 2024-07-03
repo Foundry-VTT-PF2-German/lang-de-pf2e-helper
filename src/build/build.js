@@ -9,7 +9,7 @@ import {
     existsSync,
     createWriteStream,
 } from "fs";
-import { readJSONFile, CONFIG_FILE } from "./config-helper.js/index.js";
+import { readJSONFile, CONFIG_FILE } from "./config-helper.js";
 import archiver from "archiver";
 
 export const build = (paths, targetFolder, extraConverters) => {
