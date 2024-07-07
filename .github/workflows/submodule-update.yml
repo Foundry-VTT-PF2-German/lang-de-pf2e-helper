@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PARENT_REPOSITORY1: 'Foundry-VTT-PF2-German/lang-de-pf2e'
-      PARENT_REPOSITORY2: 'Foundry-VTT-PF2-German/adventure-extractor'
+      PARENT_REPOSITORY2: 'Foundry-VTT-PF2-German/module-builder'
       CHECKOUT_BRANCH: 'main'
       PR_AGAINST_BRANCH: 'main'
       OWNER: 'Foundry-VTT-PF2-German'
