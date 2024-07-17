@@ -87,7 +87,7 @@ function updateTranslationEntry(entry, value) {
     entry.source = esc(unifyLF(entry.source));
     value = esc(unifyLF(value));
     // For updates on untranslated sources, add new entry instead of updating the current one
-    if (entry.translation === null) {
+    if (entry.translation === null && value !== null && entry.source !== null) {
         return newTranslationEntry(entry.key, value);
     }
     if (entry.source !== value) {
@@ -98,11 +98,12 @@ function updateTranslationEntry(entry, value) {
     let updatedEntry = `      <trans-unit id="${esc(entry.key, false, true)}">\n`;
     if (!entry.source) {
         updatedEntry += `        <source/>\n`;
+        updatedEntry += `        <target state="needs-translation"/>\n`;
     } else {
         updatedEntry += `        <source>${entry.source}</source>\n`;
+        updatedEntry += `        <target state="${entry.state}">`;
+        updatedEntry += `${esc(entry.translation)}</target>\n`;
     }
-    updatedEntry += `        <target state="${entry.state}">`;
-    updatedEntry += `${esc(entry.translation)}</target>\n`;
     if (entry.note && entry.note !== "") {
         updatedEntry += `        <note>${esc(entry.note)}</note>\n`;
     }
