@@ -36,6 +36,86 @@ export const PF2_DEFAULT_MAPPING = {
         routine: { path: "system.details.routine" },
         saveDetails: { path: "system.attributes.allSaves.value" },
         senses: { path: "system.perception.details" },
+        skillSpecialAcrobatics: {
+            path: "system.skills.acrobatics.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialArcana: {
+            path: "system.skills.arcana.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialAthletics: {
+            path: "system.skills.athletics.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialCrafting: {
+            path: "system.skills.crafting.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialDeception: {
+            path: "system.skills.deception.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialDiplomacy: {
+            path: "system.skills.diplomacy.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialIntimidation: {
+            path: "system.skills.intimidation.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialMedicine: {
+            path: "system.skills.medicine.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialNature: {
+            path: "system.skills.nature.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialOccultism: {
+            path: "system.skills.occultism.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialPerformance: {
+            path: "system.skills.performance.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialReligion: {
+            path: "system.skills.religion.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialSociety: {
+            path: "system.skills.society.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialStealth: {
+            path: "system.skills.stealth.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialSurvival: {
+            path: "system.skills.survival.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
+        skillSpecialThievery: {
+            path: "system.skills.thievery.special",
+            converter: "translateSkillSpecial",
+            extractOptions: { subMapping: "label" },
+        },
         source: {
             path: "system.details.publication.title",
             converter: "translateSource",
@@ -236,10 +316,6 @@ export const PF2_DEFAULT_MAPPING = {
         },
         secondarycaster: { path: "system.ritual.secondary.casters" },
         secondarycheck: { path: "system.ritual.secondary.checks" },
-        skillVariants: {
-            path: "system.variants",
-            extractOptions: { subMapping: "label" },
-        },
         source: {
             path: "system.publication.title",
             converter: "translateSource",
