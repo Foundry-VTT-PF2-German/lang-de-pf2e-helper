@@ -420,7 +420,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
             extractedEntryData.extractedEntry.duplicateId = entry._id;
         }
 
-        extractedEntryData.extractedEntry[mappingKey] = extractedValue;
+        extractedEntryData.extractedEntry[mappingKey] = unifyLineBreaks(extractedValue);
     }
     return extractedEntryData;
 }
@@ -668,4 +668,21 @@ function entryDuplicates(obj, property, value) {
             },
         ];
     }
+}
+
+/**
+ * Unifies a string, adding missing line breaks after certain html tags
+ *
+ * @param {string} str  The string that needs to get unified
+ * @returns {string}    The unified string
+ */
+function unifyLineBreaks(str) {
+    if (typeof str === "object" || !typeof str === "string") {
+        return str;
+    }
+
+    let unifiedStr = str.replace(/(?<!\n)<hr \/>/g, "\n<hr />");
+    unifiedStr = unifiedStr.replace(/<hr \/>(?!\n)/g, "<hr />\n");
+    unifiedStr = unifiedStr.replace(/<\/li>(?!\n)<li>/g, "</li>\n<li>");
+    return unifiedStr;
 }
