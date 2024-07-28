@@ -62,6 +62,7 @@ export const registerAdventureImporter = (packName) => {
                     }
                     const source = await getSource(packData);
                     if (!source) {
+                        console.warn(`No source found for actor: ${actor.name} (${actor._id})`);
                         continue;
                     }
                     const sourceData = source.toObject();
