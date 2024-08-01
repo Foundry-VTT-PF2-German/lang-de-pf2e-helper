@@ -681,8 +681,17 @@ function unifyLineBreaks(str) {
         return str;
     }
 
-    let unifiedStr = str.replace(/(?<!\n)<hr \/>/g, "\n<hr />");
-    unifiedStr = unifiedStr.replace(/<hr \/>(?!\n)/g, "<hr />\n");
-    unifiedStr = unifiedStr.replace(/<\/li>(?!\n)<li>/g, "</li>\n<li>");
+    let unifiedStr = str
+        .replace(/(?<!\n)<hr \/>/g, "\n<hr />")
+        .replace(/<hr \/>(?!\n)/g, "<hr />\n")
+        .replace(/<\/li>(?!\n)<li>/g, "</li>\n<li>")
+        .replace(/<\/p>(?!\n)<ol>/g, "</p>\n<ol>")
+        .replace(/<ol>(?!\n)<li>/g, "<ol>\n<li>")
+        .replace(/<\/li>(?!\n)<\/ol>/g, "</li>\n</ol>")
+        .replace(/<\/p>(?!\n)<ul>/g, "</p>\n<ul>")
+        .replace(/<ul>(?!\n)<li>/g, "<ul>\n<li>")
+        .replace(/<\/li>(?!\n)<\/ul>/g, "</li>\n</ul>")
+        .replace(/<\/ol>(?!\n)<p>/g, "</ol>\n<p>")
+        .replace(/<\/ul>(?!\n)<p>/g, "</ul>\n<p>");
     return unifiedStr;
 }
