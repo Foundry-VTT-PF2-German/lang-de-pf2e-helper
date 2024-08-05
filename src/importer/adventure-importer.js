@@ -81,15 +81,16 @@ export const registerAdventureImporter = (packName) => {
 
                                     // Take identification state, equipped, material and runes from original item, if available
                                     const system = foundry.utils.mergeObject(sourceItemData.system, {
-                                        identification: item.identification,
-                                        equipped: item.equipped,
-                                        material: item.material,
-                                        potencyRune: item.potencyRune,
-                                        propertyRune1: item.propertyRune1,
-                                        propertyRune2: item.propertyRune2,
-                                        propertyRune3: item.propertyRune3,
-                                        propertyRune4: item.propertyRune4,
-                                        strikingRune: item.strikingRune,
+                                        identification: item.system.identification,
+                                        equipped: item.system.equipped,
+                                        material: item.system.material,
+                                        potencyRune: item.system.potencyRune,
+                                        propertyRune1: item.system.propertyRune1,
+                                        propertyRune2: item.system.propertyRune2,
+                                        propertyRune3: item.system.propertyRune3,
+                                        propertyRune4: item.system.propertyRune4,
+                                        strikingRune: item.system.strikingRune,
+                                        runes: item.system.runes,
                                     });
                                     addItem = foundry.utils.mergeObject(item, {
                                         system: system,
