@@ -692,6 +692,8 @@ function unifyLineBreaks(str) {
         .replace(/<ul>(?!\n)<li>/g, "<ul>\n<li>")
         .replace(/<\/li>(?!\n)<\/ul>/g, "</li>\n</ul>")
         .replace(/<\/ol>(?!\n)<p>/g, "</ol>\n<p>")
-        .replace(/<\/ul>(?!\n)<p>/g, "</ul>\n<p>");
+        .replace(/<\/ul>(?!\n)<p>/g, "</ul>\n<p>")
+        .replace(/<\/p>(?!\n)<p>/g, "</p>\n<p>")
+        .replace(/<\/p>(?!\n)<h2>/g, "</p>\n<h2>");
     return unifiedStr;
 }
