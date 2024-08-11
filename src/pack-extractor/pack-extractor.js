@@ -694,6 +694,18 @@ function unifyLineBreaks(str) {
         .replace(/<\/ol>(?!\n)<p>/g, "</ol>\n<p>")
         .replace(/<\/ul>(?!\n)<p>/g, "</ul>\n<p>")
         .replace(/<\/p>(?!\n)<p>/g, "</p>\n<p>")
-        .replace(/<\/p>(?!\n)<h2>/g, "</p>\n<h2>");
+        .replace(/<\/p>(?!\n)<h1>/g, "</p>\n<h1>")
+        .replace(/<\/h1>(?!\n)<p>/g, "</h1>\n<p>")
+        .replace(/<\/p>(?!\n)<h2>/g, "</p>\n<h2>")
+        .replace(/<\/h2>(?!\n)<p>/g, "</h2>\n<p>")
+        .replace(/<\/p>(?!\n)<h3>/g, "</p>\n<h3>")
+        .replace(/<\/h3>(?!\n)<p>/g, "</h3>\n<p>")
+        .replace(/<tbody>(?!\n)<tr>/g, "<tbody>\n<tr>")
+        .replace(/<tr>(?!\n)<td>/g, "<tr>\n<td>")
+        .replace(/<\/td>(?!\n)<td>/g, "</td>\n<td>")
+        .replace(/<\/td>(?!\n)<\/tr>/g, "</td>\n</tr>")
+        .replace(/<\/tr>(?!\n)<tr>/g, "</tr>\n<tr>")
+        .replace(/<\/tr>(?!\n)<\/tbody>/g, "</tr>\n</tbody>")
+        .replace(/<\/tbody>(?!\n)<\/table>/g, "</tbody>\n</table>");
     return unifiedStr;
 }
