@@ -32,6 +32,7 @@ export const PF2_DEFAULT_MAPPING = {
             path: "system.details.publicNotes",
             converter: "translateActorDescription",
         },
+        privateNotes: { path: "system.details.privateNotes" },
         reset: { path: "system.details.reset" },
         routine: { path: "system.details.routine" },
         saveDetails: { path: "system.attributes.allSaves.value" },
