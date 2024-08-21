@@ -706,6 +706,13 @@ function unifyLineBreaks(str) {
         .replace(/<\/td>(?!\n)<\/tr>/g, "</td>\n</tr>")
         .replace(/<\/tr>(?!\n)<tr>/g, "</tr>\n<tr>")
         .replace(/<\/tr>(?!\n)<\/tbody>/g, "</tr>\n</tbody>")
-        .replace(/<\/tbody>(?!\n)<\/table>/g, "</tbody>\n</table>");
+        .replace(/<\/tbody>(?!\n)<\/table>/g, "</tbody>\n</table>")
+        .replace(/<section class=\"fumble-deck\">(?!\n)<h1>/g, '<section class="fumble-deck">\n<h1>')
+        .replace(/<section class=\"critical-deck\">(?!\n)<h1>/g, '<section class="critical-deck">\n<h1>')
+        .replace(/<\/h1>(?!\n)<blockquote>/g, "</h1>\n<blockquote>")
+        .replace(/<blockquote>(?!\n)<p>/g, "<blockquote>\n<p>")
+        .replace(/<\/p>(?!\n)<\/blockquote>/g, "</p>\n</blockquote>")
+        .replace(/<\/blockquote>(?!\n)<p>/g, "</blockquote>\n<p>")
+        .replace(/<\/p>(?!\n)<\/section>/g, "</p>\n</section>");
     return unifiedStr;
 }
