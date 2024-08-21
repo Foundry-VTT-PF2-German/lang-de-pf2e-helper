@@ -673,68 +673,42 @@ function entryDuplicates(obj, property, value) {
 /**
  * Unifies a string, adding missing line breaks after certain html tags
  *
- * @param {string} str  The string that needs to get unified
- * @returns {string}    The unified string
+ * @param {string} htmlString   The string that needs to get unified
+ * @returns {string}            The unified string
  */
-function unifyLineBreaks(str) {
-    if (typeof str === "object" || !typeof str === "string") {
-        return str;
+function unifyLineBreaks(htmlString) {
+    if (typeof htmlString === "object" || !typeof htmlString === "string") {
+        return htmlString;
     }
 
-    let unifiedStr = str
-        .replace(/(?<!\n)<hr \/>/g, "\n<hr />")
-        .replace(/<hr \/>(?!\n)/g, "<hr />\n")
-        .replace(/<\/li>(?!\n)<li>/g, "</li>\n<li>")
-        .replace(/<\/p>(?!\n)<ol>/g, "</p>\n<ol>")
-        .replace(/<ol>(?!\n)<li>/g, "<ol>\n<li>")
-        .replace(/<\/li>(?!\n)<\/ol>/g, "</li>\n</ol>")
-        .replace(/<\/p>(?!\n)<ul>/g, "</p>\n<ul>")
-        .replace(/<ul>(?!\n)<li>/g, "<ul>\n<li>")
-        .replace(/<\/li>(?!\n)<\/ul>/g, "</li>\n</ul>")
-        .replace(/<\/ol>(?!\n)<p>/g, "</ol>\n<p>")
-        .replace(/<\/ul>(?!\n)<p>/g, "</ul>\n<p>")
-        .replace(/<\/p>(?!\n)<p>/g, "</p>\n<p>")
-        .replace(/<\/p>(?!\n)<h1>/g, "</p>\n<h1>")
-        .replace(/<\/h1>(?!\n)<p>/g, "</h1>\n<p>")
-        .replace(/<\/h1>(?!\n)<h2>/g, "</h1>\n<h2>")
-        .replace(/<\/h1>(?!\n)<ul>/g, "</h1>\n<ul>")
-        .replace(/<\/ul>(?!\n)<h1>/g, "</ul>\n<h1>")
-        .replace(/<\/p>(?!\n)<h2>/g, "</p>\n<h2>")
-        .replace(/<\/h2>(?!\n)<p>/g, "</h2>\n<p>")
-        .replace(/<\/h2>(?!\n)<h3>/g, "</h2>\n<h3>")
-        .replace(/<\/h2>(?!\n)<ul>/g, "</h2>\n<ul>")
-        .replace(/<\/ul>(?!\n)<h2>/g, "</ul>\n<h2>")
-        .replace(/<\/p>(?!\n)<h3>/g, "</p>\n<h3>")
-        .replace(/<\/h3>(?!\n)<p>/g, "</h3>\n<p>")
-        .replace(/<\/h3>(?!\n)<ul>/g, "</h3>\n<ul>")
-        .replace(/<\/ul>(?!\n)<h3>/g, "</ul>\n<h3>")
-        .replace(/<\/p>(?!\n)<h4>/g, "</p>\n<h4>")
-        .replace(/<\/h4>(?!\n)<p>/g, "</h4>\n<p>")
-        .replace(/<\/h4>(?!\n)<ul>/g, "</h4>\n<ul>")
-        .replace(/<\/ul>(?!\n)<h4>/g, "</ul>\n<h4>")
-        .replace(/<thead>(?!\n)<tr>/g, "<thead>\n<tr>")
-        .replace(/<tr>(?!\n)<th>/g, "<tr>\n<th>")
-        .replace(/<tbody>(?!\n)<tr>/g, "<tbody>\n<tr>")
-        .replace(/<tr>(?!\n)<td>/g, "<tr>\n<td>")
-        .replace(/<\/td>(?!\n)<td>/g, "</td>\n<td>")
-        .replace(/<\/td>(?!\n)<\/tr>/g, "</td>\n</tr>")
-        .replace(/<\/tr>(?!\n)<tr>/g, "</tr>\n<tr>")
-        .replace(/<\/th>(?!\n)<th>/g, "</th>\n<th>")
-        .replace(/<\/th>(?!\n)<\/tr>/g, "</th>\n</tr>")
-        .replace(/<\/tr>(?!\n)<\/thead>/g, "</tr>\n</thead>")
-        .replace(/<\/thead>(?!\n)<tbody>/g, "</thead>\n<tbody>")
-        .replace(/<\/tr>(?!\n)<\/tbody>/g, "</tr>\n</tbody>")
-        .replace(/<\/tbody>(?!\n)<\/table>/g, "</tbody>\n</table>")
-        .replace(/<\/table>(?!\n)<p>/g, "</table>\n<p>")
-        .replace(/<\/p>(?!\n)<table class=\"pf2e\">/g, '</p>\n<table class="pf2e">')
-        .replace(/<table class=\"pf2e\">(?!\n)<thead>/g, '<table class="pf2e">\n<thead>')
-        .replace(/<table class=\"pf2e\">(?!\n)<tbody>/g, '<table class="pf2e">\n<tbody>')
-        .replace(/<section class=\"fumble-deck\">(?!\n)<h1>/g, '<section class="fumble-deck">\n<h1>')
-        .replace(/<section class=\"critical-deck\">(?!\n)<h1>/g, '<section class="critical-deck">\n<h1>')
-        .replace(/<\/h1>(?!\n)<blockquote>/g, "</h1>\n<blockquote>")
-        .replace(/<blockquote>(?!\n)<p>/g, "<blockquote>\n<p>")
-        .replace(/<\/p>(?!\n)<\/blockquote>/g, "</p>\n</blockquote>")
-        .replace(/<\/blockquote>(?!\n)<p>/g, "</blockquote>\n<p>")
-        .replace(/<\/p>(?!\n)<\/section>/g, "</p>\n</section>");
-    return unifiedStr;
+    const tags = [
+        "p",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "ul",
+        "ol",
+        "li",
+        "table",
+        "thead",
+        "th",
+        "tbody",
+        "tr",
+        "td",
+        "section",
+        "blockquote",
+    ];
+
+    const tagList = tags.map((tag) => tag.toLowerCase());
+
+    tagList.forEach((tag) => {
+        const regexOpenTag = new RegExp(`(?<!\n|^)<${tag}(\\s[^>]*)?>`, "g");
+        const regexCloseTag = new RegExp(`</${tag}>(?!\n|$)`, "g");
+
+        htmlString = htmlString.replace(regexOpenTag, `\n<${tag}$1>`);
+        htmlString = htmlString.replace(regexCloseTag, `</${tag}>\n`);
+    });
+
+    return htmlString;
 }
