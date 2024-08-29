@@ -605,8 +605,8 @@ export function buildItemDatabase(itemPacks, packMapping) {
             // Loop through the pack items and build database, exclude items on blacklist
             JSON.parse(pack.content).forEach((item) => {
                 const itemLink =
-                    item.flags?.core?.sourceId && !packMapping.blacklist.includes(item.flags.core.sourceId)
-                        ? item.flags.core.sourceId
+                    item._stats?.compendiumSource && !packMapping.blacklist.includes(item._stats.compendiumSource)
+                        ? item._stats.compendiumSource
                         : "";
 
                 let itemLinkShort = "";
