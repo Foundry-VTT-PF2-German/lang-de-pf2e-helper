@@ -122,6 +122,10 @@ export const PF2_DEFAULT_MAPPING = {
             converter: "translateSource",
             extractOptions: { addToDictionary: true, extractValue: false },
         },
+        sourceId: {
+            path: "flags.core.sourceId",
+            extractOptions: { specialExtraction: "sourceId", extractOnAdventureActor: true },
+        },
         speed: { path: "system.details.speed" },
         speed2: {
             path: "system.attributes.speed.details",
@@ -446,3 +450,41 @@ export const PF2_DEFAULT_MAPPING = {
         },
     },
 };
+
+export const ACTOR_REDIRECTS = [
+    {
+        name: "Animated Armor",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.cZDiyluplFqRxmGy",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.CFlx1tkRxKC9qAC7",
+    },
+    {
+        name: "Animated Statue",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.PiAGhPEzJMC2egQk",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.yQ2mosomuAPiLMkU",
+    },
+    {
+        name: "Arboreal Warden",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.aNWiP985fISjClGo",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.0rm0UDbXvwg4sSxQ",
+    },
+    {
+        name: "Arboreal Regent",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.c6AE2Mh8BRtBgbtz",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.z2l8K7woKYPkm0qz",
+    },
+    {
+        name: "Aapoph Serpentfolk",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-2.Actor.fv91xoQJlogVbruW",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.X3QcYLr2rBcIsJrC",
+    },
+    {
+        name: "Aolaz",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-2.Actor.WMiPblOVq5w2Fa1x",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.KdW5UeZSqeTZZlo5",
+    },
+    {
+        name: "Dybbuk",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-3.Actor.QUzBzxRy6HLeK7ja",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.IrssIkWkW6fsbHJL",
+    },
+];
