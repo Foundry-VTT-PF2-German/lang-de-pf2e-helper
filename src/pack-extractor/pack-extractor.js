@@ -187,7 +187,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
 
         // Check if the current field exists in the compendium entry and extract its value
         let extractedValue = resolvePath(entry, mappingData.path).exists
-            ? resolveValue(entry, mappingData.path)
+            ? unifyLineBreaks(resolveValue(entry, mappingData.path))
             : false;
 
         // Add mappings that should always be included
@@ -442,7 +442,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
             extractedEntryData.extractedEntry.duplicateId = entry._id;
         }
 
-        extractedEntryData.extractedEntry[mappingKey] = unifyLineBreaks(extractedValue);
+        extractedEntryData.extractedEntry[mappingKey] = extractedValue;
     }
     return extractedEntryData;
 }
@@ -699,7 +699,7 @@ function entryDuplicates(obj, property, value) {
  * @returns {string}            The unified string
  */
 function unifyLineBreaks(htmlString) {
-    if (typeof htmlString === "object" || !typeof htmlString === "string") {
+    if (typeof htmlString !== "string") {
         return htmlString;
     }
 
@@ -723,8 +723,6 @@ function unifyLineBreaks(htmlString) {
         "td",
         "section",
         "blockquote",
-        "hr",
-        "hr /",
     ];
 
     const tagList = tags.map((tag) => tag.toLowerCase());
