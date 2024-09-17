@@ -453,8 +453,23 @@ export const PF2_DEFAULT_MAPPING = {
 
 export const ACTOR_REDIRECTS = [
     {
+        name: "Aapoph Serpentfolk",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-2.Actor.fv91xoQJlogVbruW",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.X3QcYLr2rBcIsJrC",
+    },
+    {
+        name: "Alchemical Golem",
+        linkOld: "Compendium.pf2e.the-slithering-bestiary.Actor.idj4GBmsLUNUbk9r",
+        linkNew: "Compendium.pf2e.pathfinder-bestiary.Actor.Tpuqwt6Af29EMtqX",
+    },
+    {
         name: "Animated Armor",
         linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.cZDiyluplFqRxmGy",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.CFlx1tkRxKC9qAC7",
+    },
+    {
+        name: "Animated Armor",
+        linkOld: "Compendium.pf2e.menace-under-otari-bestiary.Actor.cZDiyluplFqRxmGy",
         linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.CFlx1tkRxKC9qAC7",
     },
     {
@@ -463,9 +478,9 @@ export const ACTOR_REDIRECTS = [
         linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.yQ2mosomuAPiLMkU",
     },
     {
-        name: "Arboreal Warden",
-        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.aNWiP985fISjClGo",
-        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.0rm0UDbXvwg4sSxQ",
+        name: "Aolaz",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-2.Actor.WMiPblOVq5w2Fa1x",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.KdW5UeZSqeTZZlo5",
     },
     {
         name: "Arboreal Regent",
@@ -473,14 +488,44 @@ export const ACTOR_REDIRECTS = [
         linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.z2l8K7woKYPkm0qz",
     },
     {
-        name: "Aapoph Serpentfolk",
-        linkOld: "Compendium.pf2e.pathfinder-bestiary-2.Actor.fv91xoQJlogVbruW",
-        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.X3QcYLr2rBcIsJrC",
+        name: "Arboreal Warden",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.aNWiP985fISjClGo",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.0rm0UDbXvwg4sSxQ",
     },
     {
-        name: "Aolaz",
-        linkOld: "Compendium.pf2e.pathfinder-bestiary-2.Actor.WMiPblOVq5w2Fa1x",
-        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.KdW5UeZSqeTZZlo5",
+        name: "Army Ant Swarm",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-2.Actor.8a9N2iPA5HLpkWaF",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.drcSWbCIWc7P4lKO",
+    },
+    {
+        name: "Awakened Tree",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.oBMIc2S8ekmDgPpi",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.0Dsy2I3mu86Czjm0",
+    },
+    {
+        name: "Axiomite",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.9qjXP1Lho1UmAihJ",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.7v1gykqjBO1YHDfu",
+    },
+    {
+        name: "Azarketi Crab Catcher",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.KvcFqH6H4TFCuBZA",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.ZXiFjrQbhvboEZTL",
+    },
+    {
+        name: "Azarketi Tide Tamer",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.sZ9RwN8zIzpztW3N",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.jTszZSs0K6vOqidM",
+    },
+    {
+        name: "Boar",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.4MwjCsa5O9aAjxSm",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.IyhbcdTVmkV4pSju",
+    },
+    {
+        name: "Boar",
+        linkOld: "Compendium.pf2e.menace-under-otari-bestiary.Actor.4MwjCsa5O9aAjxSm",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.IyhbcdTVmkV4pSju",
     },
     {
         name: "Dybbuk",
