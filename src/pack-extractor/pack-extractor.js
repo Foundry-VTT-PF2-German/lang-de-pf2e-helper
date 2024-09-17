@@ -724,7 +724,7 @@ function unifyLineBreaks(htmlString) {
         "section",
         "blockquote",
         "hr",
-        "hr /"
+        "hr /",
     ];
 
     const tagList = tags.map((tag) => tag.toLowerCase());
