@@ -703,6 +703,9 @@ function unifyLineBreaks(htmlString) {
         return htmlString;
     }
 
+    //Replace <hr>
+    htmlString = htmlString.replaceAll("<hr>", "<hr />");
+
     const tags = [
         "p",
         "h1",
@@ -721,7 +724,7 @@ function unifyLineBreaks(htmlString) {
         "section",
         "blockquote",
         "hr",
-        "hr /"
+        "hr /",
     ];
 
     const tagList = tags.map((tag) => tag.toLowerCase());
