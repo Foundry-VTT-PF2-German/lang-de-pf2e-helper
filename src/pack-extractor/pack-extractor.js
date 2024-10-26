@@ -534,9 +534,9 @@ function formatActorItem(extractedValue, mappingKey, mappingPath, item, itemData
     }
 
     // Check if the item exists in a pf2 system compendium
-    if (resolvePath(item, "flags.core.sourceId").exists && itemDatabase[item.flags.core.sourceId]) {
-        const databaseItem = itemDatabase[item.flags.core.sourceId];
-
+    const itemCompendiumLink = getCompendiumLinkFromItemData(item);
+    if (itemCompendiumLink && itemDatabase[itemCompendiumLink]) {
+        const databaseItem = itemDatabase[itemCompendiumLink];
         // For regular actor items, reduce localization load since items are pulled and merged from a compendium during translation.
         // For adventure actor items however, items may have gotten modified and mustn't get merged with the compendium version.
         // As a result, adventure actor items need to get all relevant fields extracted
@@ -763,4 +763,26 @@ function unifyLineBreaks(htmlString) {
     });
 
     return htmlString;
+}
+
+/**
+ * Extracts an item's compendium link for items, that originate from a compendium
+ *
+ * @param {Object} item         Item data
+ * @returns {string|boolean}  The item's compendium link
+ */
+function getCompendiumLinkFromItemData(item) {
+    let compendiumLink = false;
+    if (resolvePath(item, "flags.core.sourceId").exists) {
+        compendiumLink = item.flags.core.sourceId;
+    }
+    if (resolvePath(item, "_stats.compendiumSource").exists) {
+        compendiumLink = item._stats.compendiumSource;
+    }
+
+    if (compendiumLink !== null && compendiumLink.startsWith("Compendium.pf2e.")) {
+        return compendiumLink;
+    }
+
+    return false;
 }
