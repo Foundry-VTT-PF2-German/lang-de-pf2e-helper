@@ -773,14 +773,14 @@ function unifyLineBreaks(htmlString) {
  */
 function getCompendiumLinkFromItemData(item) {
     let compendiumLink = false;
-    if (resolvePath(item, "flags.core.sourceId").exists) {
+    if (resolvePath(item, "flags.core.sourceId").exists && item.flags.core.sourceId !== null) {
         compendiumLink = item.flags.core.sourceId;
     }
-    if (resolvePath(item, "_stats.compendiumSource").exists) {
+    if (resolvePath(item, "_stats.compendiumSource").exists && item._stats.compendiumSource !== null) {
         compendiumLink = item._stats.compendiumSource;
     }
 
-    if (compendiumLink !== null && compendiumLink.startsWith("Compendium.pf2e.")) {
+    if (compendiumLink !== false && compendiumLink.startsWith("Compendium.pf2e.")) {
         return compendiumLink;
     }
 
