@@ -1,21 +1,19 @@
 name: Submodule Updates
 
-##############################################
-# Start Job on merged pull request into main #
-##############################################
 on:
-  pull_request:
-    types: [closed]
-    branches: [main]
+  workflow_dispatch:
 
 ###############
 # Set the Job #
 ###############
 jobs:
   build:
-    if: "github.event.pull_request.merged == true"
-    name: Submodule update
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
     env:
       PARENT_REPOSITORY1: 'Foundry-VTT-PF2-German/lang-de-pf2e'
       PARENT_REPOSITORY2: 'Foundry-VTT-PF2-German/module-builder'
@@ -29,6 +27,11 @@ jobs:
       ##########################
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
 
       ####################################
       # Run the action against code base #
