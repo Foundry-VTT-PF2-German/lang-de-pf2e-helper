@@ -51,6 +51,8 @@ export const registerAdventureImporter = (packName) => {
                     const packData = getPackData(actor);
                     // Skip actors without sourceId
                     if (!packData) {
+                        console.warn("Actor does not have source ID");
+                        console.warn(actor);
                         continue;
                     }
                     if (packData.importType !== "Compendium") {
