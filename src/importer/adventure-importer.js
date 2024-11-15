@@ -1,4 +1,30 @@
+import { ACTOR_REDIRECTS } from '../pack-extractor/constants.js';
+
 const keepImportPrefix = "[keep-on-import]";
+
+let remasterMap = null;
+
+const getRemasterSourceID = (originalSourceID) => {
+    if (!remasterMap) {
+        remasterMap = {};
+        for (const actorEntry of ACTOR_REDIRECTS) {
+            remasterMap[actorEntry.linkOld] = actorEntry.linkNew;
+        }
+    }
+    const splitID = originalSourceID.split('.');
+    if (splitID.length === 4) {
+        splitID.splice(3, 0, 'Actor');
+    }
+    const checkID = splitID.join('.');
+
+    if (remasterMap[checkID]) {
+        return remasterMap[checkID];
+    }
+    else {
+        return originalSourceID;
+    }
+
+}
 
 const getPackData = (document) => {
     // Skip actors without sourceId
@@ -6,7 +32,7 @@ const getPackData = (document) => {
         return null;
     }
     // Determine pack
-    const splitPack = document.flags.core.sourceId.split(".");
+    const splitPack = getRemasterSourceID(document.flags.core.sourceId).split(".");
     // Remove first and last element, the pack name seems to be in the middle
     // Evaluation based on https://github.com/foundryvtt/pf2e/blob/3400aea5ad67e47b5d2a19b0a9777b89a453c9c8/build/lib/compendium-pack.ts#L313C5-L315C6
     const documentID = splitPack.pop();
@@ -51,6 +77,8 @@ export const registerAdventureImporter = (packName) => {
                     const packData = getPackData(actor);
                     // Skip actors without sourceId
                     if (!packData) {
+                        console.warn("Actor does not have source ID");
+                        console.warn(actor);
                         continue;
                     }
                     if (packData.importType !== "Compendium") {
