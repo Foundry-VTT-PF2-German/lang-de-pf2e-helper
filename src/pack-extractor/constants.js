@@ -341,6 +341,7 @@ export const PF2_DEFAULT_MAPPING = {
             path: "system.trainedSkills.lore",
             extractOptions: { extractOnActorItem: false, convertArray: false },
         },
+        unidentifiedName: { path: "system.identification.unidentified.name" },
     },
     journal: {
         name: { path: "name" },
