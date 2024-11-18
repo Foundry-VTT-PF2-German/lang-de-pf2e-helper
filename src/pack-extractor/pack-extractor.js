@@ -422,6 +422,12 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
             continue;
         }
         // Apply special extraction rules on value level
+        // Special extraction for actors
+        if (["adventureActors", "adventureCompendiumActors"].includes(nestedEntryType)) {
+            // Add the actor id in order to identify actor duplicates (e.g. treasure actors with the same name)
+            extractedEntryData.extractedEntry.duplicateId = entry._id;
+        }
+
         // Special extraction for actor items
         if (["actorItems", "adventureActorItems"].includes(nestedEntryType)) {
             const formatedActorItem = formatActorItem(
