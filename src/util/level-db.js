@@ -90,11 +90,14 @@ export async function getJSONfromPack(databasePath, packType = null) {
  */
 export async function createPack(databasePath, packType, sourceData, folders = []) {
     const db = new ClassicLevel(databasePath, DB_OPTIONS);
+    await db.open();
     const { dbKey, subKey } = { dbKey: packType, subKey: getSubKey(packType) };
 
     // Initialize sublevel DBs
     const mainDb = db.sublevel(dbKey, DB_OPTIONS);
+    await mainDb.open();
     const subDb = dbKey ? db.sublevel(`${dbKey}.${subKey}`, DB_OPTIONS) : null;
+    await subDb?.open();
     const foldersDb = db.sublevel("folders", DB_OPTIONS);
 
     const docBatch = mainDb.batch();
