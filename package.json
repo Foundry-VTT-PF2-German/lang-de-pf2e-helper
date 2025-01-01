@@ -8,7 +8,7 @@
         "json": "^11.0.0",
         "path-value": "^0.9.5",
         "archiver": "^7.0.1",
-        "pdfjs-dist": "4.9.155"
+        "pdfjs-dist": "4.10.38"
     },
     "type": "module"
 }
