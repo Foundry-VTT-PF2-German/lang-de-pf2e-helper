@@ -10,5 +10,8 @@
         "archiver": "^7.0.1",
         "pdfjs-dist": "4.10.38"
     },
+    "scripts": {
+        "strip-token-deltas": "node ./src/scripts/strip-token-deltas.js"
+    },
     "type": "module"
 }
