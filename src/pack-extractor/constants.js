@@ -2319,4 +2319,24 @@ export const ACTOR_REDIRECTS = [
         linkOld: "Compendium.pf2e.the-slithering-bestiary.Actor.idj4GBmsLUNUbk9r",
         linkNew: "Compendium.pf2e.pathfinder-bestiary.Actor.Tpuqwt6Af29EMtqX",
     },
+    {
+        name: "Quetzalcoatlus",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.8JvzSTwQWtOsxRfL",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.a4LgD3NrgkiINvru",
+    },
+    {
+        name: "City Guard Squadron",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-3.Actor.SQKdvPIhWkrHlkbn",
+        linkNew: "Compendium.pf2e.pathfinder-npc-core.Actor.jAdRgBHut1h1et10",
+    },
+    {
+        name: "Hellknight Cavalry Brigade",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-3.Actor.CXCdPqMRX58sBQ9G",
+        linkNew: "Compendium.pf2e.pathfinder-npc-core.Actor.02AGznZTv5jjcnOg",
+    },
+    {
+        name: "Rancorous Priesthood",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary-3.Actor.vOTFqODTDDC2BDLx",
+        linkNew: "Compendium.pf2e.pathfinder-npc-core.Actor.uFQsIRC0zz3sNNIW",
+    },
 ];
