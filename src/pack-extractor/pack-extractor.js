@@ -213,7 +213,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
         }
 
         // Check if the current field exists in the compendium entry and extract its value
-        let extractedValue = resolvePath(entry, mappingData.path).exists
+        let extractedValue = resolvePath(entry, mappingData.path).exists && !Array.isArray(entry) //Check gegen Array notwendig seit path-value 0.10.0
             ? unifyLineBreaks(resolveValue(entry, mappingData.path))
             : false;
 
