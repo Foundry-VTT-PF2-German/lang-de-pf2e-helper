@@ -8,7 +8,7 @@
         "json": "^11.0.0",
         "path-value": "^0.10.1",
         "archiver": "^7.0.1",
-        "pdfjs-dist": "4.10.38"
+        "pdfjs-dist": "5.0.375"
     },
     "scripts": {
         "strip-token-deltas": "node ./src/scripts/strip-token-deltas.js"
