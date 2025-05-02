@@ -1,0 +1,58 @@
+name: Submodule Updates
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-submodules:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        parent-repo:
+          - Foundry-VTT-PF2-German/lang-de-pf2e
+          - Foundry-VTT-PF2-German/module-builder
+
+    env:
+      SUBMODULE_PATH: 'src/helper'
+      BRANCH_NAME: 'update-helper-submodule'
+      BASE_BRANCH: 'main'
+
+    steps:
+      - name: Set up Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Clone parent repo
+        run: |
+          git clone --depth=1 --branch ${{ env.BASE_BRANCH }} https://x-access-token:${{ secrets.SUBMODULE_UPDATE }}@github.com/${{ matrix.parent-repo }} parent-repo
+          cd parent-repo
+          git submodule update --init --recursive
+
+      - name: Update submodule and push branch
+        run: |
+          cd parent-repo
+          git checkout -b $BRANCH_NAME
+          git submodule update --remote $SUBMODULE_PATH
+          git add $SUBMODULE_PATH
+
+          if git diff --cached --quiet; then
+            echo "No submodule updates found. Skipping PR."
+            exit 0
+          fi
+
+          git commit -m "chore: update submodule $SUBMODULE_PATH"
+          git push origin $BRANCH_NAME
+
+      - name: Create Pull Request
+        run: |
+          cd parent-repo
+          gh pr create \
+            --title "chore: update submodule $SUBMODULE_PATH" \
+            --body "Automated update of the helper submodule to latest commit." \
+            --base $BASE_BRANCH \
+            --head $BRANCH_NAME \
+            --repo ${{ matrix.parent-repo }}
+        env:
+          GH_TOKEN: ${{ secrets.SUBMODULE_UPDATE }}
