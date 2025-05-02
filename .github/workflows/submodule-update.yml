@@ -3,53 +3,56 @@ name: Submodule Updates
 on:
   workflow_dispatch:
 
-###############
-# Set the Job #
-###############
 jobs:
-  build:
+  update-submodules:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x]
+        parent-repo:
+          - Foundry-VTT-PF2-German/lang-de-pf2e
+          - Foundry-VTT-PF2-German/module-builder
 
     env:
-      PARENT_REPOSITORY1: 'Foundry-VTT-PF2-German/lang-de-pf2e'
-      PARENT_REPOSITORY2: 'Foundry-VTT-PF2-German/module-builder'
-      CHECKOUT_BRANCH: 'main'
-      PR_AGAINST_BRANCH: 'main'
-      OWNER: 'Foundry-VTT-PF2-German'
+      SUBMODULE_PATH: 'src/helper'
+      BRANCH_NAME: 'update-helper-submodule'
+      BASE_BRANCH: 'main'
 
     steps:
-      ##########################
-      # Checkout the code base #
-      ##########################
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Set up Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
+      - name: Clone parent repo
+        run: |
+          git clone --depth=1 --branch ${{ env.BASE_BRANCH }} https://x-access-token:${{ secrets.SUBMODULE_UPDATE }}@github.com/${{ matrix.parent-repo }} parent-repo
+          cd parent-repo
+          git submodule update --init --recursive
 
-      ####################################
-      # Run the action against code base #
-      ####################################
-      - name: Update lang-de-pf2e
-        uses: releasehub-com/github-action-create-pr-parent-submodule@v1
-        with:
-          github_token: ${{ secrets.SUBMODULE_UPDATE }}
-          parent_repository: ${{ env.PARENT_REPOSITORY1 }}
-          checkout_branch: ${{ env.CHECKOUT_BRANCH}}
-          pr_against_branch: ${{ env.PR_AGAINST_BRANCH }}
-          owner: ${{ env.OWNER }}
-      
-      - name: Update adventure-extractor
-        uses: releasehub-com/github-action-create-pr-parent-submodule@v1
-        with:
-          github_token: ${{ secrets.SUBMODULE_UPDATE }}
-          parent_repository: ${{ env.PARENT_REPOSITORY2 }}
-          checkout_branch: ${{ env.CHECKOUT_BRANCH}}
-          pr_against_branch: ${{ env.PR_AGAINST_BRANCH }}
-          owner: ${{ env.OWNER }}
+      - name: Update submodule and push branch
+        run: |
+          cd parent-repo
+          git checkout -b $BRANCH_NAME
+          git submodule update --remote $SUBMODULE_PATH
+          git add $SUBMODULE_PATH
+
+          if git diff --cached --quiet; then
+            echo "No submodule updates found. Skipping PR."
+            exit 0
+          fi
+
+          git commit -m "chore: update submodule $SUBMODULE_PATH"
+          git push origin $BRANCH_NAME
+
+      - name: Create Pull Request
+        run: |
+          cd parent-repo
+          gh pr create \
+            --title "chore: update submodule $SUBMODULE_PATH" \
+            --body "Automated update of the helper submodule to latest commit." \
+            --base $BASE_BRANCH \
+            --head $BRANCH_NAME \
+            --repo ${{ matrix.parent-repo }}
+        env:
+          GH_TOKEN: ${{ secrets.SUBMODULE_UPDATE }}
