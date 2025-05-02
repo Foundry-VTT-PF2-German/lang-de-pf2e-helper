@@ -15,7 +15,7 @@ jobs:
 
     env:
       SUBMODULE_PATH: 'src/helper'
-      BRANCH_NAME: 'update-helper-submodule'
+      BRANCH_NAME: 'update-helper-submodule-${{ github.run_id }}'
       BASE_BRANCH: 'main'
 
     steps:
