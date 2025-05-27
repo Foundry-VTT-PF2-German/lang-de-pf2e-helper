@@ -3,6 +3,8 @@ name: Submodule Updates
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   update-submodules:
     runs-on: ubuntu-latest
