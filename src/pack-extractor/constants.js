@@ -174,7 +174,7 @@ export const PF2_DEFAULT_MAPPING = {
         },
         tables: {
             path: "tables",
-            converter: "tableResultsCollection",
+            converter: "translateAdventureTables",
             extractOptions: { subMapping: "rollableTable", specialExtraction: "nameAsKey" },
         },
         macros: {
@@ -383,7 +383,7 @@ export const PF2_DEFAULT_MAPPING = {
         description: { path: "description" },
         results: {
             path: "results",
-            converter: "tableResults",
+            converter: "translateTableResults",
             extractOptions: {
                 subMapping: "tableResults",
                 specialExtraction: "tableResults",
@@ -440,6 +440,8 @@ export const PF2_DEFAULT_MAPPING = {
     },
     tableResults: {
         text: { path: "text", extractOptions: { addToMapping: false } },
+        name: { path: "name", extractOptions: { addToMapping: false } },
+        description: { path: "description", extractOptions: { addToMapping: false } },
     },
     text: {
         text: { path: "text", extractOptions: { addToMapping: false } },

@@ -239,7 +239,10 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
         }
 
         // For special extraction sourceId or compendiumSource, only extract value if redirected; use redirected value instead
-        if (extractOptions.specialExtraction === "sourceId" || extractOptions.specialExtraction === "compendiumSource" ) {
+        if (
+            extractOptions.specialExtraction === "sourceId" ||
+            extractOptions.specialExtraction === "compendiumSource"
+        ) {
             let redirected = false;
             for (const actorRedirect of actorRedirects) {
                 if (extractedValue === actorRedirect.linkOld) {
@@ -335,7 +338,6 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
                 // For table results, build special key consisting of the roll ranges
                 if (extractOptions.specialExtraction === "tableResults") {
                     subEntryKey = `${extractedValue[subEntry].range[0]}-${extractedValue[subEntry].range[1]}`;
-                    nestedEntry = "plainData";
                 }
 
                 // For tokens, set nested entry type to token
@@ -467,7 +469,7 @@ export function extractEntry(entry, mapping, itemDatabase = {}, nestedEntryType 
         }
 
         // For plain data collections, return the plain value instead of an object using the mapping key
-        // This is neccessary due to the required babele data structure for rollable tables
+        // This is neccessary due to the required babele data structure for some standard converters
         if (nestedEntryType === "plainData") {
             extractedEntryData.extractedEntry = extractedValue;
             continue;
