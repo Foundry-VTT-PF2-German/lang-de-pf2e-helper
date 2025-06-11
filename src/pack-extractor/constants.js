@@ -11,6 +11,10 @@ export const PF2_DEFAULT_MAPPING = {
             converter: "translateActorDescription",
         },
         blurb: { path: "system.details.blurb", extractOptions: { extractOnAdventureActor: true } },
+        compendiumSource: {
+            path: "_stats.compendiumSource",
+            extractOptions: { specialExtraction: "compendiumSource", extractOnAdventureActor: true },
+        },
         crew: { path: "system.details.crew" },
         description: {
             path: "system.details.description",
