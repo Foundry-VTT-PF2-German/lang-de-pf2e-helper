@@ -347,6 +347,7 @@ export const PF2_DEFAULT_MAPPING = {
             extractOptions: { extractOnActorItem: false, convertArray: false },
         },
         unidentifiedName: { path: "system.identification.unidentified.name" },
+        unidentifiedDescription: { path: "system.identification.unidentified.data.description.value" },
     },
     journal: {
         name: { path: "name" },
