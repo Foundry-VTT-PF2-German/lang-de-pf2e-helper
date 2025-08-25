@@ -2346,4 +2346,59 @@ export const ACTOR_REDIRECTS = [
         linkOld: "Compendium.pf2e.pathfinder-bestiary-3.Actor.vOTFqODTDDC2BDLx",
         linkNew: "Compendium.pf2e.pathfinder-npc-core.Actor.uFQsIRC0zz3sNNIW",
     },
+    {
+        name: "Charau-Ka Warrior",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.TfEGDGqUk3LpokZZ",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.TfEGDGqUk3LpokZZ"
+    },
+    {
+        name: "Choral",
+        linkOld: "Compendium.pf2e.pathfinder-bestiary.Actor.zUvgAbgeQH5t6DWs",
+        linkNew: "Compendium.pf2e.pathfinder-monster-core.Actor.9SNpsnwlzZjH4DQf"
+    },
+    {
+        name: "Bilokokrieger",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.rayMMWNm61ivtxuU",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.rayMMWNm61ivtxuU"
+    },
+    {
+        name: "Bilokoveteran",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.rrJqsVeBKizuyqRY",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.rrJqsVeBKizuyqRY"
+    },
+    {
+        name: "Charau-Ka-Schlachter",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.QUyqY6JiZNkEyTnd",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.QUyqY6JiZNkEyTnd"
+    },
+    {
+        name: "Eloko",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.rVnJUXPgAPCeW1tS",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.rVnJUXPgAPCeW1tS"
+    },
+    {
+        name: "Asanbosam",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.As0M3PvmrR2055pk",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.As0M3PvmrR2055pk"
+    },
+    {
+        name: "Anadijäger",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.aXXvrcggR8EQJOdm",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.aXXvrcggR8EQJOdm"
+    },
+    {
+        name: "Anadigelehrter",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.IWk8dWUf4Q4D8iww",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.IWk8dWUf4Q4D8iww"
+    },
+    {
+        name: "Anadiälteste",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.bo3BDHT7P1IK7oLp",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.bo3BDHT7P1IK7oLp"
+    },
+    {
+        name: "Charau-Ka-Akolyth des Angazhan",
+        linkOld: "Compendium.pf2e.lost-omens-mwangi-expanse-bestiary.Actor.BxChohV8FBiyAnEc",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.BxChohV8FBiyAnEc"
+    }
 ];
