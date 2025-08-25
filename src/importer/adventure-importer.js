@@ -28,11 +28,12 @@ const getRemasterSourceID = (originalSourceID) => {
 
 const getPackData = (document) => {
     // Skip actors without sourceId
-    if (!document.flags || !document.flags.core || !document.flags.core.sourceId) {
+    const sourceID = document._stats?.compendiumSource || document.flags?.core?.sourceId;
+    if (!sourceID) {
         return null;
     }
     // Determine pack
-    const splitPack = getRemasterSourceID(document.flags.core.sourceId).split(".");
+    const splitPack = getRemasterSourceID(sourceID).split(".");
     // Remove first and last element, the pack name seems to be in the middle
     // Evaluation based on https://github.com/foundryvtt/pf2e/blob/3400aea5ad67e47b5d2a19b0a9777b89a453c9c8/build/lib/compendium-pack.ts#L313C5-L315C6
     const documentID = splitPack.pop();
