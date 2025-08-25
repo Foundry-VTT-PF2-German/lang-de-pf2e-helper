@@ -80,6 +80,7 @@ export const registerAdventureImporter = (packName) => {
                     if (!packData) {
                         if (actor.type !== "loot") {
                             console.warn("Actor does not have source ID");
+                            console.warn(actor);
                             console.warn(actor.name);
                             console.warn(actor?.flags?.babele?.originalName);
                         }
@@ -95,6 +96,7 @@ export const registerAdventureImporter = (packName) => {
                     const source = await getSource(packData);
                     if (!source) {
                         console.warn(`No source found for actor: ${actor.name} (${actor._id})`);
+                        console.warn(actor);
                         continue;
                     }
                     const sourceData = source.toObject();
