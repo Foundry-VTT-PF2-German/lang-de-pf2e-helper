@@ -1,4 +1,4 @@
-import { ACTOR_REDIRECTS } from '../pack-extractor/constants.js';
+import { ACTOR_REDIRECTS } from "../pack-extractor/constants.js";
 
 const keepImportPrefix = "[keep-on-import]";
 
@@ -21,20 +21,18 @@ const getRemasterSourceID = (originalSourceID) => {
             remasterMap[actorEntry.linkOld] = actorEntry.linkNew;
         }
     }
-    const splitID = originalSourceID.split('.');
+    const splitID = originalSourceID.split(".");
     if (splitID.length === 4) {
-        splitID.splice(3, 0, 'Actor');
+        splitID.splice(3, 0, "Actor");
     }
-    const checkID = splitID.join('.');
+    const checkID = splitID.join(".");
 
     if (remasterMap[checkID]) {
         return remasterMap[checkID];
-    }
-    else {
+    } else {
         return originalSourceID;
     }
-
-}
+};
 
 const getPackData = (document) => {
     // Skip actors without sourceId
