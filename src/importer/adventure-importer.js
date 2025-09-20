@@ -1,6 +1,16 @@
-import { ACTOR_REDIRECTS } from '../pack-extractor/constants.js';
+import { ACTOR_REDIRECTS } from "../pack-extractor/constants.js";
 
 const keepImportPrefix = "[keep-on-import]";
+
+// Based on ActorSizePF2e from PF2e system: https://github.com/foundryvtt/pf2e/blob/940278c8f6efc687b59098688293ce24f24df228/src/module/actor/data/size.ts#L55
+const defaultSpaces = {
+    tiny: { long: 2.5, wide: 2.5 },
+    sm: { long: 5, wide: 5 },
+    med: { long: 5, wide: 5 },
+    lg: { long: 10, wide: 10 },
+    huge: { long: 15, wide: 15 },
+    grg: { long: 20, wide: 20 },
+}
 
 let remasterMap = null;
 
@@ -11,20 +21,18 @@ const getRemasterSourceID = (originalSourceID) => {
             remasterMap[actorEntry.linkOld] = actorEntry.linkNew;
         }
     }
-    const splitID = originalSourceID.split('.');
+    const splitID = originalSourceID.split(".");
     if (splitID.length === 4) {
-        splitID.splice(3, 0, 'Actor');
+        splitID.splice(3, 0, "Actor");
     }
-    const checkID = splitID.join('.');
+    const checkID = splitID.join(".");
 
     if (remasterMap[checkID]) {
         return remasterMap[checkID];
-    }
-    else {
+    } else {
         return originalSourceID;
     }
-
-}
+};
 
 const getPackData = (document) => {
     // Skip actors without sourceId
@@ -70,6 +78,7 @@ export const registerAdventureImporter = (packName) => {
         if (adventure.pack != packName) {
             return true;
         }
+        const updatedActors = new Map();
         let count = 0;
         for (const container of [toCreate, toUpdate]) {
             count++;
@@ -145,6 +154,30 @@ export const registerAdventureImporter = (packName) => {
                         rules: sourceData.rules,
                         "flags.core.sourceId": source.uuid,
                     });
+                    updatedActors.set(actor._id, actor);
+                }
+            }
+        }
+        // Update actors in scenes based on updated actors
+        for (const container of [toCreate, toUpdate]) {
+            if (container.Scene) {
+                for (const scene of container.Scene) {
+                    if (scene.tokens) {
+                        for (const token of scene.tokens) {
+                            if (updatedActors.has(token.actorId)) {
+                                const actor = updatedActors.get(token.actorId);
+                                const spaces = defaultSpaces[actor?.system?.traits?.size?.value];
+                                if (!spaces) {
+                                    continue;
+                                }
+                                foundry.utils.mergeObject(token, {
+                                    height: spaces.long / 5,
+                                    width: spaces.wide / 5,
+                                    actorLink: true,
+                                });
+                            }
+                        }
+                    }
                 }
             }
         }
