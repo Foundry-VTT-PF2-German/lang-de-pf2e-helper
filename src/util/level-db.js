@@ -139,15 +139,13 @@ export async function createPack(databasePath, packType, sourceData, folders = [
 }
 
 /**
- * Fetches a ZIP file from an URL and creates json files from LevelDB directories within the ZIP
+ * Creates json files from LevelDB directories within a ZIP file
  *
- * @param {string} url                                  URL for the ZIP file
+ * @param {Object} zipEntries                           ZIP file contents
  * @param {string} subDirName                           Subdirectory within ZIP fiule conaining the LevelDB directories
  * @returns {[{fileName:string, fileContent:string}]}   Array of Objects containing name and content for the json file
  */
-export async function extractAndReadPacksFromZip(url, subDirName, levelDBs) {
-    // Read ZIP content
-    const zipEntries = await getZipContentFromURL(url);
+export async function extractAndReadPacksFromZip(zipEntries, subDirName, levelDBs) {
 
     // Filter subdirectory
     const relevantFiles = zipEntries.filter((e) => e.path?.startsWith(subDirName + "/"));
