@@ -1,4 +1,7 @@
 import { ClassicLevel } from "classic-level";
+import { deleteFolderRecursive, getZipContentFromURL } from "./file-handler.js";
+import { mkdirSync, readdirSync, writeFileSync } from "fs";
+import { join, dirname } from "path";
 import { isDoc } from "./utilities.js";
 
 // Supported database types
@@ -10,7 +13,7 @@ const DB_OPTIONS = { keyEncoding: "utf8", valueEncoding: "json" };
 /**
  * Extracts the relevant keys for a pack from the pack's keys
  *
- * @param {Array<string>} packKeys                   Array containing the pack's keys
+ * @param {Array<string>} packKeys                          Array containing the pack's keys
  * @returns {{dbKey:string|null,subKey:string|null}|null}   Object containing key and sub key for a database
  */
 function getPackKeys(packKeys) {
@@ -133,4 +136,53 @@ export async function createPack(databasePath, packType, sourceData, folders = [
         await folderBatch.write();
     }
     await db.close();
+}
+
+
+/**
+ * Fetches a ZIP file from an URL and creates json files from LevelDB directories within the ZIP
+ *
+ * @param {string} url                                  URL for the ZIP file
+ * @param {string} subDirName                           Subdirectory within ZIP fiule conaining the LevelDB directories
+ * @returns {[{fileName:string, fileContent:string}]}   Array of Objects containing name and content for the json file
+ */
+export async function extractAndReadPacksFromZip(url, subDirName) {
+    // Read ZIP content
+    const zipEntries = await getZipContentFromURL(url);
+    // Filter subdirectory
+    const relevantFiles = zipEntries.filter((e) => e.path?.startsWith(subDirName + "/"));
+
+    if (relevantFiles.length === 0) {
+        console.warn(`No data within '${subDirName}/'`);
+        return [];
+    }
+
+    // Create temp directory
+    const tempRoot = join(process.cwd(), `packs-${Date.now()}`);
+    mkdirSync(tempRoot, { recursive: true });
+
+    // Write ZIP files to temp directory
+    for (const entry of relevantFiles) {
+        const fileName = entry.fileName + (entry.fileType ? `.${entry.fileType}` : "");
+        const fullPath = join(tempRoot, entry.path, fileName);
+        mkdirSync(dirname(fullPath), { recursive: true });
+        writeFileSync(fullPath, entry.content);
+    }
+
+    // Read all subfolders within temp as LevelDB
+    const packsRoot = join(tempRoot, subDirName);
+    const dirents = readdirSync(packsRoot, { withFileTypes: true });
+    const packDirs = dirents.filter((d) => d.isDirectory()).map((d) => join(packsRoot, d.name));
+
+    // Extract LevelDBs
+    const packResults = [];
+    for (const dbPath of packDirs) {
+        const data = await getJSONfromPack(dbPath);
+        if (data) packResults.push(data);
+    }
+
+    // Delete temp directory
+    deleteFolderRecursive(tempRoot);
+
+    return packResults;
 }
