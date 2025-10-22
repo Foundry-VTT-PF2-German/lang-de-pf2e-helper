@@ -138,7 +138,6 @@ export async function createPack(databasePath, packType, sourceData, folders = [
     await db.close();
 }
 
-
 /**
  * Fetches a ZIP file from an URL and creates json files from LevelDB directories within the ZIP
  *
@@ -146,12 +145,12 @@ export async function createPack(databasePath, packType, sourceData, folders = [
  * @param {string} subDirName                           Subdirectory within ZIP fiule conaining the LevelDB directories
  * @returns {[{fileName:string, fileContent:string}]}   Array of Objects containing name and content for the json file
  */
-export async function extractAndReadPacksFromZip(url, subDirName) {
+export async function extractAndReadPacksFromZip(url, subDirName, levelDBs) {
     // Read ZIP content
     const zipEntries = await getZipContentFromURL(url);
+
     // Filter subdirectory
     const relevantFiles = zipEntries.filter((e) => e.path?.startsWith(subDirName + "/"));
-
     if (relevantFiles.length === 0) {
         console.warn(`No data within '${subDirName}/'`);
         return [];
@@ -169,16 +168,20 @@ export async function extractAndReadPacksFromZip(url, subDirName) {
         writeFileSync(fullPath, entry.content);
     }
 
-    // Read all subfolders within temp as LevelDB
+    // Read only requested LevelDBs
     const packsRoot = join(tempRoot, subDirName);
-    const dirents = readdirSync(packsRoot, { withFileTypes: true });
-    const packDirs = dirents.filter((d) => d.isDirectory()).map((d) => join(packsRoot, d.name));
-
-    // Extract LevelDBs
     const packResults = [];
-    for (const dbPath of packDirs) {
+
+    for (const { levelDBName, fileName, mapping } of levelDBs || []) {
+        const dbPath = join(packsRoot, levelDBName);
         const data = await getJSONfromPack(dbPath);
-        if (data) packResults.push(data);
+        if (data) {
+            packResults.push({
+                fileName,
+                fileContent: data,
+                mapping,
+            });
+        }
     }
 
     // Delete temp directory
