@@ -309,6 +309,7 @@ export const PF2_DEFAULT_MAPPING = {
         materials: { path: "system.materials.value" },
         prerequisites: {
             path: "system.prerequisites.value",
+            converter: "translatePrerequisites",
             extractOptions: { extractOnActorItem: false, convertArray: false },
         },
         primarycheck: { path: "system.ritual.primary.check" },
