@@ -641,6 +641,9 @@ function checkLocalizationRelevance(data) {
  */
 function checkStrikeType(strike) {
     let strikeType = "strike-melee";
+    if (strike.system.range) {
+        strikeType = "strike-ranged";
+    }
     strike.system.traits.value.forEach((trait) => {
         if (trait.startsWith("range-") || trait.startsWith("thrown-")) {
             strikeType = "strike-ranged";
