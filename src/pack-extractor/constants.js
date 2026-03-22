@@ -219,6 +219,7 @@ export const PF2_DEFAULT_MAPPING = {
             converter: "translatePageCategories",
             extractOptions: {
                 subMapping: "pageCategory",
+                specialExtraction: "nameAsKey",
             },
         },
     },
