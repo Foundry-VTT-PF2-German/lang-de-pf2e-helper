@@ -216,7 +216,7 @@ export const PF2_DEFAULT_MAPPING = {
         },
         categories: {
             path: "categories",
-            converter: "pageCategories",
+            converter: "translatePageCategories",
             extractOptions: {
                 subMapping: "pageCategory",
             },
