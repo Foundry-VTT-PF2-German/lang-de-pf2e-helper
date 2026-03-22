@@ -214,6 +214,13 @@ export const PF2_DEFAULT_MAPPING = {
                 specialExtraction: "adventureJournalPages",
             },
         },
+        categories: {
+            path: "categories",
+            converter: "pageCategories",
+            extractOptions: {
+                subMapping: "pageCategory",
+            },
+        },
     },
     adventureJournalPages: {
         name: { path: "name", extractOptions: { addToMapping: false } },
@@ -367,6 +374,9 @@ export const PF2_DEFAULT_MAPPING = {
     },
     label: {
         label: { path: "label", extractOptions: { addToMapping: false } },
+    },
+    pageCategory: {
+        name: { path: "name", extractOptions: { addToMapping: false } },
     },
     playlist: {
         name: { path: "name" },
