@@ -172,8 +172,7 @@ export const registerAdventureImporter = (packName) => {
                                 }
                                 foundry.utils.mergeObject(token, {
                                     height: spaces.long / 5,
-                                    width: spaces.wide / 5,
-                                    actorLink: true,
+                                    width: spaces.wide / 5
                                 });
                             }
                         }
