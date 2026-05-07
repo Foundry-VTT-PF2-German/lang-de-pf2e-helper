@@ -277,6 +277,7 @@ export const PF2_DEFAULT_MAPPING = {
         },
         badges: {
             path: "system.badge.labels",
+            converter: "translateBadges",
             extractOptions: { extractOnActorItem: false, convertArray: false },
         },
         consumableSpellName: { path: "system.spell.name" },
