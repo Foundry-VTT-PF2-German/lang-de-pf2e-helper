@@ -7,7 +7,7 @@
         "he": "1.2.0",
         "json": "^11.0.0",
         "path-value": "^0.10.1",
-        "archiver": "^7.0.1",
+        "archiver": "^8.0.0",
         "pdfjs-dist": "5.7.284"
     },
     "scripts": {
