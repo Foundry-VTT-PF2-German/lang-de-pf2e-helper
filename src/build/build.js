@@ -10,7 +10,7 @@ import {
     createWriteStream,
 } from "fs";
 import { readJSONFile, CONFIG_FILE } from "./config-helper.js";
-import archiver from "archiver";
+import { ZipArchive } from "archiver";
 
 export const build = (paths, targetFolder, extraConverters) => {
     const configData = readJSONFile(CONFIG_FILE);
@@ -81,7 +81,7 @@ export const build = (paths, targetFolder, extraConverters) => {
     if (configData.createZip) {
         const moduleName = readJSONFile("./module.json").id;
         const output = createWriteStream(`${targetFolder}/${moduleName}.zip`);
-        const archive = archiver("zip");
+        const archive = new ZipArchive({zlib: { level: 9 },});
         for (const path of readdirSync(targetFolder)) {
             const stats = statSync(targetFolder + "/" + path);
             if (stats.isDirectory()) {
