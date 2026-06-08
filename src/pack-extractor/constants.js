@@ -560,6 +560,11 @@ export const ACTOR_REDIRECTS = [
         linkNew: "Compendium.pf2e.pathfinder-monster-core-2.Actor.i2fRfiIWOJeZedcx",
     },
     {
+        name: "Peng",
+        linkOld: "Compendium.pf2e.fists-of-the-ruby-phoenix-bestiary.Actor.PiO3DnxtaT3W4728",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.0yF82Lo495lKarLS",
+    },
+    {
         name: "Berberoka",
         linkOld: "Compendium.pf2e.fists-of-the-ruby-phoenix-bestiary.Actor.Twt8z6nTPgYQ0mTv",
         linkNew: "Compendium.pf2e.pathfinder-monster-core-2.Actor.CNbPWUHtLgNIeft5",
@@ -573,6 +578,11 @@ export const ACTOR_REDIRECTS = [
         name: "Kithangian",
         linkOld: "Compendium.pf2e.gatewalkers-bestiary.Actor.ESgndiwI8BzwhDLi",
         linkNew: "Compendium.pf2e.pathfinder-monster-core-2.Actor.c21HwKyf4IKgMfcv",
+    },
+    {
+        name: "Darkside Mirror",
+        linkOld: "Compendium.pf2e.hazards.Actor.4jJxLlimyQaIVXlt",
+        linkNew: "Compendium.pf2e.pathfinder-dark-archive.Actor.6gSbmVKbdUSIluMR",
     },
     {
         name: "Quantium Golem",
@@ -1408,6 +1418,76 @@ export const ACTOR_REDIRECTS = [
         name: "Leopard (BB)",
         linkOld: "Compendium.pf2e.menace-under-otari-bestiary.Actor.wqPYzMNgYvrO6oEP",
         linkNew: "Compendium.pf2e.menace-under-otari-bestiary.Actor.kB7FNn3vosp6cqQg",
+    },
+    {
+        name: "Azarketi Sailor",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.5Rqh2dBxGU8Jwf56",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.5Rqh2dBxGU8Jwf56",
+    },
+    {
+        name: "Changeling Hellknight",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.95IcOUvxABvj5lvo",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.95IcOUvxABvj5lvo",
+    },
+    {
+        name: "Charming Scoundrel",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.EMl8hARVJk8SNVyW",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.EMl8hARVJk8SNVyW",
+    },
+    {
+        name: "Ethereal Sailor",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.F8AzuPOCcveWasza",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.F8AzuPOCcveWasza",
+    },
+    {
+        name: "Hellknight Armiger",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.UuPPceVcGk1RwSbB",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.UuPPceVcGk1RwSbB",
+    },
+    {
+        name: "Hellknight Paravicar",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.mJxgYD8TQg1W2oXC",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.mJxgYD8TQg1W2oXC",
+    },
+    {
+        name: "Pathfinder Field Agent",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.VkG5yl9xcmziwpQD",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.VkG5yl9xcmziwpQD",
+    },
+    {
+        name: "Pathfinder Venture-Captain",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.o4XTf77fEEoFVTdA",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.o4XTf77fEEoFVTdA",
+    },
+    {
+        name: "Privateer Captain",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.48bZvtRcd7T6FmA7",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.48bZvtRcd7T6FmA7",
+    },
+    {
+        name: "Rain-Scribe",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.2SBKFCog4JY3WrOW",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.2SBKFCog4JY3WrOW",
+    },
+    {
+        name: "Stone Giant Monk",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.401MnHX5aO21P2Y8",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.401MnHX5aO21P2Y8",
+    },
+    {
+        name: "Tempest-Sun Mage",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.M2Vi2mkwMZv1ZRka",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.M2Vi2mkwMZv1ZRka",
+    },
+    {
+        name: "Veteran Reclaimer",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.hxyImo4ts3O0BrAY",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.hxyImo4ts3O0BrAY",
+    },
+    {
+        name: "Virtuous Defender",
+        linkOld: "Compendium.pf2e.npc-gallery.Actor.bc1jeTvmzKeYGVw9",
+        linkNew: "Compendium.pf2e.lost-omens-bestiary.Actor.bc1jeTvmzKeYGVw9",
     },
     {
         name: "Azarketi Crab Catcher",
