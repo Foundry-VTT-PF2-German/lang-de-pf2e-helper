@@ -11,7 +11,8 @@
         "pdfjs-dist": "6.0.227"
     },
     "scripts": {
-        "strip-token-deltas": "node ./src/scripts/strip-token-deltas.js"
+        "strip-token-deltas": "node ./src/scripts/strip-token-deltas.js",
+        "update-redirects": "node ./src/scripts/update-redirects.js"
     },
     "type": "module"
 }
