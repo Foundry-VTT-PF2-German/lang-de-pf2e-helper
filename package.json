@@ -4,7 +4,7 @@
         "@prantlf/jsonlint": "^17.0.1",
         "@zip.js/zip.js": "^2.18.2",
         "classic-level": "^3.0.0",
-        "he": "1.2.0",
+        "he": "2.0.0",
         "json": "^11.0.0",
         "path-value": "^0.10.1",
         "archiver": "^8.0.0",
